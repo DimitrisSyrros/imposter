@@ -23,6 +23,13 @@ export function Reveal({ round, index, total, isImposter, hintMode, revealMode, 
     return () => document.removeEventListener("visibilitychange", onHidden);
   }, []);
 
+  // A long press anywhere on this screen must not open the phone's menu (save image, copy, ...).
+  useEffect(() => {
+    const block = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", block);
+    return () => document.removeEventListener("contextmenu", block);
+  }, []);
+
   const holdHandlers = {
     onPointerDown: (e) => {
       if (e.button !== 0) return;
@@ -42,7 +49,6 @@ export function Reveal({ round, index, total, isImposter, hintMode, revealMode, 
       if (e.key === " " || e.key === "Enter") hide();
     },
     onBlur: hide,
-    onContextMenu: (e) => e.preventDefault(), // long press on phones
   };
 
   const tapHandlers = {

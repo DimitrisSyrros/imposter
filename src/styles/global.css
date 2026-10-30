@@ -383,8 +383,10 @@ legend { padding: 0; margin-bottom: 0.5rem; }
 @container (max-width: 12rem) { .clue { grid-template-columns: minmax(0, 1fr); } }
 .hold { margin: 0; text-align: center; font-size: 0.9375rem; font-style: italic; color: var(--app-muted); }
 
-/* Hold-to-reveal: no text selection, callout or scrolling while the finger is down. */
-.reveal-btn { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none; }
+/* Hold-to-reveal: no text selection, callout or scrolling while the finger is down.
+   The whole card screen, not just the button, so a long press near it doesn't open the phone's menu. */
+.app:has(.reveal-btn) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.reveal-btn { touch-action: none; }
 .reveal-btn.active { translate: 0 1px; filter: brightness(.95); }
 
 /* Clue round */
