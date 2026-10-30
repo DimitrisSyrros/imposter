@@ -29,8 +29,6 @@
   --f-display: "GFS Didot", Georgia, serif;
   --f-body: "Alegreya Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  --facade: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='160' viewBox='0 0 130 160'%3E%3Cg fill='none' stroke='%231b2e31' stroke-width='1.4'%3E%3Cpath d='M20 30h90M24 36h82'/%3E%3Cpath d='M30 42v86M100 42v86M26 42h8M96 42h8'/%3E%3Crect x='42' y='44' width='46' height='82'/%3E%3Cpath d='M65 44v82M42 84h46'/%3E%3Cpath d='M36 128h58v6H36z'/%3E%3C/g%3E%3C/svg%3E");
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --radius: 2px;
   --card-tilt: 0deg;
 
@@ -62,7 +60,8 @@ body {
 button, input { font: inherit; color: inherit; }
 
 /* Phone-width column, centred on wide screens. Scrolls if content is taller than the viewport.
-   The facade: carved casings repeating behind everything, a vignette, film grain. */
+   The facade: a close-up of the building at night, fitted to the column width; its plain dark
+   bottom fades into the page colour so long screens continue in plain dark. */
 .app {
   position: relative;
   isolation: isolate;
@@ -70,9 +69,9 @@ button, input { font: inherit; color: inherit; }
   max-width: var(--app-max);
   margin-inline: auto;
   background:
-    var(--grain),
     radial-gradient(ellipse 120% 80% at 50% 40%, transparent 40%, #000c 100%),
-    var(--facade) 50% 0 / 130px 160px,
+    linear-gradient(transparent calc(min(100vw, var(--app-max)) * 1.5 - 6rem), var(--app-bg) calc(min(100vw, var(--app-max)) * 1.5)),
+    url("../assets/facade-night.webp") center top / 100% auto no-repeat,
     var(--app-bg);
   display: flex;
   flex-direction: column;
@@ -83,14 +82,8 @@ button, input { font: inherit; color: inherit; }
     max(var(--gutter), env(safe-area-inset-bottom))
     max(var(--gutter), env(safe-area-inset-left));
   overflow-wrap: anywhere;
-  overflow-x: clip; /* the edge windows below must never cause sideways scrolling */
+  overflow-x: clip;
 }
-/* two lit windows peeking in at the edges, inside the side margin, never behind text */
-.app::before, .app::after {
-  content: ""; position: absolute; z-index: -1; pointer-events: none; width: 52px; height: 84px;
-}
-.app::before { left: -38px; top: 34%; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 84'%3E%3Crect x='4' y='6' width='44' height='70' fill='%23f2b445'/%3E%3Cg fill='%230b0504'%3E%3Ccircle cx='30' cy='56' r='4'/%3E%3Cpath d='M27 53l1-4 2 3zM33 53l-1-4-2 3z'/%3E%3Cpath d='M25 66c0-6 10-6 10 0z'/%3E%3C/g%3E%3Cg fill='none' stroke='%230b0504' stroke-width='2.5'%3E%3Crect x='4' y='6' width='44' height='70'/%3E%3Cpath d='M26 6v70M4 40h44'/%3E%3C/g%3E%3Cpath d='M0 0h52v6H0zM0 76h52v8H0z' fill='%231b2e31'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 0 14px #f2b44566); }
-.app::after { right: -38px; top: 62%; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 84'%3E%3Crect x='4' y='6' width='44' height='70' fill='%23c8102e'/%3E%3Cpath d='M14 60l26-26M14 66l26-26' stroke='%230b0504' stroke-width='1.5'/%3E%3Ccircle cx='26' cy='28' r='3.4' fill='%230b0504'/%3E%3Cpath d='M21 25h10l-1-2h-8z' fill='%230b0504'/%3E%3Cpath d='M22 32h8l1 18-3 10h-4l-3-10z' fill='%230b0504'/%3E%3Cg fill='none' stroke='%230b0504' stroke-width='2.5'%3E%3Crect x='4' y='6' width='44' height='70'/%3E%3Cpath d='M26 6v70M4 40h44'/%3E%3C/g%3E%3Cpath d='M0 0h52v6H0zM0 76h52v8H0z' fill='%231b2e31'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 0 16px #c8102e88); }
 
 .grow { flex: 1; }
 .stack { display: grid; gap: 0.75rem; }
@@ -165,7 +158,6 @@ button, input { font: inherit; color: inherit; }
     url("../assets/home-night.webp") center bottom var(--home-img-lift) / 100% auto no-repeat,
     #060a0b;
 }
-.app:has(.home-title)::before, .app:has(.home-title)::after { content: none; }
 .logo { display: grid; justify-items: center; gap: 0.75rem; text-align: center; padding-top: 0.5rem; order: -2; }
 .mask {
   width: 3rem; height: 3rem; border-radius: 50%;
@@ -341,27 +333,39 @@ legend { padding: 0; margin-bottom: 0.5rem; }
 .privacy { margin: 0; font-size: 0.9375rem; font-style: italic; color: var(--app-muted); text-align: center; }
 .privacy.left { text-align: left; }
 
-/* The card: a warm orange wall with branch shadows falling across it (and over the text), framed by a
-   carved window surround: lintel with dentils, fluted pilasters on bracket capitals, a sill.
+/* The card: a warm orange wall with branch shadows, framed by a carved stone window surround.
+   The wall (::before) fills the window opening; the frame (::after) is a border-image whose plain
+   pilasters stretch to any card height. In card-frame.webp (768×1152 px) the slices are the cornice
+   and capitals (292), the pilasters (165) and the bases, sill and brackets (256); the opening starts
+   175 px from the top and ends 191 px from the bottom. Everything scales from --frame-x, the pilaster
+   width. The wall is lifted so the dark ink stays at 4.5:1 or more on its shadiest spot.
    Same box for both roles and for the hidden state. */
 .card {
-  position: relative;
+  --frame-x: 1.75rem;
+  --frame-t: calc(var(--frame-x) * 292 / 165);
+  --frame-b: calc(var(--frame-x) * 256 / 165);
+  position: relative; isolation: isolate;
   color: var(--paper-ink); border-radius: 0;
-  padding: 3.625rem 2.75rem 2.5rem; min-height: 22.5rem;
+  padding: calc(var(--frame-t) + 0.5rem) calc(var(--frame-x) + 0.5rem) calc(var(--frame-b) + 0.5rem);
+  /* Fits the longest imposter card (longest category + hint), so both roles are the same size. */
+  min-height: 22.5rem;
   display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.5rem; align-content: center; justify-items: center; text-align: center;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 44' preserveAspectRatio='none'%3E%3Crect width='300' height='44' fill='%23b4471a'/%3E%3Crect y='0' width='300' height='6' fill='%23cf5f26'/%3E%3Crect y='6' width='300' height='1.2' fill='%232a0c04' opacity='.6'/%3E%3Crect y='8' width='300' height='5' fill='%23a23e15'/%3E%3Crect x='2' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='10' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='18' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='26' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='34' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='42' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='50' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='58' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='66' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='74' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='82' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='90' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='98' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='106' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='114' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='122' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='130' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='138' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='146' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='154' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='162' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='170' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='178' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='186' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='194' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='202' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='210' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='218' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='226' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='234' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='242' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='250' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='258' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='266' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='274' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='282' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='290' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect x='298' y='8.5' width='4' height='4' fill='%23d46a2c'/%3E%3Crect y='14' width='300' height='1' fill='%232a0c04' opacity='.5'/%3E%3Crect y='16' width='300' height='14' fill='%23c4531f'/%3E%3Crect y='16' width='300' height='1.2' fill='%23ffa060' opacity='.6'/%3E%3Crect y='29' width='300' height='1.2' fill='%232a0c04' opacity='.55'/%3E%3Crect y='31' width='300' height='9' fill='%23a8421a'/%3E%3Crect y='40' width='300' height='4' fill='%237a2a0c'/%3E%3Cpath d='M0 22h300M0 25h300' stroke='%232a0c04' stroke-width='.5' opacity='.35'/%3E%3C/svg%3E") top / 100% 44px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 28' preserveAspectRatio='none'%3E%3Crect width='300' height='28' fill='%23a8421a'/%3E%3Crect width='300' height='5' fill='%23d46a2c'/%3E%3Crect y='5' width='300' height='1.2' fill='%232a0c04' opacity='.6'/%3E%3Crect y='7' width='300' height='9' fill='%23b84c1c'/%3E%3Crect y='16' width='300' height='1' fill='%232a0c04' opacity='.5'/%3E%3Crect y='17' width='300' height='11' fill='%237a2a0c'/%3E%3C/svg%3E") bottom / 100% 28px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 36' preserveAspectRatio='xMidYMid meet'%3E%3Cpath d='M0 0h34v6H0z' fill='%23d46a2c'/%3E%3Cpath d='M0 6h34v1.2H0z' fill='%232a0c04' opacity='.6'/%3E%3Cpath d='M3 7h28v6H3z' fill='%23b84c1c'/%3E%3Cpath d='M6 13h22c0 10-4 18-11 22-7-4-11-12-11-22z' fill='%23a8421a'/%3E%3Cpath d='M9 15c0 7 3 13 8 17 5-4 8-10 8-17' fill='none' stroke='%232a0c04' stroke-width='.8' opacity='.55'/%3E%3Ccircle cx='17' cy='20' r='3' fill='%237a2a0c'/%3E%3Ccircle cx='17' cy='20' r='1.4' fill='%23d46a2c'/%3E%3C/svg%3E") left 3px top 42px / 34px 36px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 36' preserveAspectRatio='xMidYMid meet'%3E%3Cpath d='M0 0h34v6H0z' fill='%23d46a2c'/%3E%3Cpath d='M0 6h34v1.2H0z' fill='%232a0c04' opacity='.6'/%3E%3Cpath d='M3 7h28v6H3z' fill='%23b84c1c'/%3E%3Cpath d='M6 13h22c0 10-4 18-11 22-7-4-11-12-11-22z' fill='%23a8421a'/%3E%3Cpath d='M9 15c0 7 3 13 8 17 5-4 8-10 8-17' fill='none' stroke='%232a0c04' stroke-width='.8' opacity='.55'/%3E%3Ccircle cx='17' cy='20' r='3' fill='%237a2a0c'/%3E%3Ccircle cx='17' cy='20' r='1.4' fill='%23d46a2c'/%3E%3C/svg%3E") right 3px top 42px / 34px 36px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 100' preserveAspectRatio='none'%3E%3Crect width='28' height='100' fill='%23c0501d'/%3E%3Crect width='2' height='100' fill='%23ffa060' opacity='.45'/%3E%3Crect x='26' width='2' height='100' fill='%232a0c04' opacity='.45'/%3E%3Crect x='6' width='1.6' height='100' fill='%237a2a0c' opacity='.75'/%3E%3Crect x='7.6' width='.8' height='100' fill='%23ff9a52' opacity='.45'/%3E%3Crect x='11' width='1.6' height='100' fill='%237a2a0c' opacity='.75'/%3E%3Crect x='12.6' width='.8' height='100' fill='%23ff9a52' opacity='.45'/%3E%3Crect x='16' width='1.6' height='100' fill='%237a2a0c' opacity='.75'/%3E%3Crect x='17.6' width='.8' height='100' fill='%23ff9a52' opacity='.45'/%3E%3Crect x='21' width='1.6' height='100' fill='%237a2a0c' opacity='.75'/%3E%3Crect x='22.6' width='.8' height='100' fill='%23ff9a52' opacity='.45'/%3E%3C/svg%3E") left 6px top 76px / 28px calc(100% - 104px) no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 100' preserveAspectRatio='none'%3E%3Crect width='28' height='100' fill='%23c0501d'/%3E%3Crect width='2' height='100' fill='%23ffa060' opacity='.45'/%3E%3Crect x='26' width='2' height='100' fill='%232a0c04' opacity='.45'/%3E%3Crect x='6' width='1.6' height='100' fill='%237a2a0c' opacity='.75'/%3E%3Crect x='7.6' width='.8' height='100' fill='%23ff9a52' opacity='.45'/%3E%3Crect x='11' width='1.6' height='100' fill='%237a2a0c' opacity='.75'/%3E%3Crect x='12.6' width='.8' height='100' fill='%23ff9a52' opacity='.45'/%3E%3Crect x='16' width='1.6' height='100' fill='%237a2a0c' opacity='.75'/%3E%3Crect x='17.6' width='.8' height='100' fill='%23ff9a52' opacity='.45'/%3E%3Crect x='21' width='1.6' height='100' fill='%237a2a0c' opacity='.75'/%3E%3Crect x='22.6' width='.8' height='100' fill='%23ff9a52' opacity='.45'/%3E%3C/svg%3E") right 6px top 76px / 28px calc(100% - 104px) no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 400' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3Cfilter id='b' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeGaussianBlur stdDeviation='3.2'/%3E%3C/filter%3E%3Cfilter id='bb' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeGaussianBlur stdDeviation='7'/%3E%3C/filter%3E%3C/defs%3E%3Cg filter='url(%23b)' fill='none' stroke='%233a1004' stroke-linecap='round' opacity='.42'%3E%3Cpath d='M-10 30c40 20 60 50 70 100M20 50c10 18 8 40-4 56M40 70c18-4 34 2 44 14M-10 220c30 4 50 20 60 50M310 40c-40 24-58 60-62 104M290 60c-8 20-4 40 8 54M272 96c-18-2-32 6-40 20M310 300c-30 0-56 20-66 50' stroke-width='5'/%3E%3C/g%3E%3Cg filter='url(%23b)' fill='%233a1004' opacity='.36'%3E%3Cellipse cx='18' cy='40' rx='10' ry='5' transform='rotate(30 18 40)'/%3E%3Cellipse cx='52' cy='96' rx='10' ry='5' transform='rotate(70 52 96)'/%3E%3Cellipse cx='30' cy='120' rx='10' ry='5' transform='rotate(-20 30 120)'/%3E%3Cellipse cx='70' cy='64' rx='10' ry='5' transform='rotate(10 70 64)'/%3E%3Cellipse cx='8' cy='240' rx='10' ry='5' transform='rotate(40 8 240)'/%3E%3Cellipse cx='44' cy='262' rx='10' ry='5' transform='rotate(-30 44 262)'/%3E%3Cellipse cx='282' cy='52' rx='10' ry='5' transform='rotate(-30 282 52)'/%3E%3Cellipse cx='250' cy='120' rx='10' ry='5' transform='rotate(60 250 120)'/%3E%3Cellipse cx='296' cy='104' rx='10' ry='5' transform='rotate(20 296 104)'/%3E%3Cellipse cx='236' cy='96' rx='10' ry='5' transform='rotate(-10 236 96)'/%3E%3Cellipse cx='268' cy='330' rx='10' ry='5' transform='rotate(40 268 330)'/%3E%3Cellipse cx='290' cy='290' rx='10' ry='5' transform='rotate(-20 290 290)'/%3E%3C/g%3E%3Cg filter='url(%23bb)' fill='%233a1004' opacity='.14'%3E%3Cpath d='M60 150c40-10 90 0 120 30 20 20 40 30 70 30-30 10-60 4-84-14-24-18-60-30-106-46z'/%3E%3Cellipse cx='110' cy='170' rx='12' ry='6' transform='rotate(20 110 170)'/%3E%3Cellipse cx='150' cy='196' rx='12' ry='6' transform='rotate(-30 150 196)'/%3E%3Cellipse cx='196' cy='188' rx='12' ry='6' transform='rotate(40 196 188)'/%3E%3Cellipse cx='130' cy='236' rx='12' ry='6' transform='rotate(10 130 236)'/%3E%3Cellipse cx='176' cy='250' rx='12' ry='6' transform='rotate(-20 176 250)'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat,
-    radial-gradient(ellipse 65% 55% at 46% 46%, #ffb36a 0%, #f58a3d 40%, #e2742e 70%, #c25a24 100%);
-  box-shadow: 0 0 46px #ef7a3555, 0 16px 30px #000b;
   rotate: var(--card-tilt);
   container-type: inline-size;
 }
+.card::before, .card::after { content: ""; position: absolute; z-index: -1; pointer-events: none; }
+.card::before {
+  inset: calc(var(--frame-x) * 175 / 165 - 0.25rem) calc(var(--frame-x) - 0.25rem) calc(var(--frame-x) * 191 / 165 - 0.25rem);
+  background: url("../assets/card-wall.webp") center / cover, var(--paper);
+  box-shadow: 0 0 46px #ef7a3555;
+}
+.card::after {
+  inset: 0;
+  border: solid transparent; border-width: var(--frame-t) var(--frame-x) var(--frame-b);
+  border-image: url("../assets/card-frame.webp") 292 165 256 stretch;
+}
+/* Narrow phones: a slimmer frame leaves room for the longest imposter text within the same height. */
+@media (max-width: 22.4375em) { .card { --frame-x: 1.375rem; padding-inline: calc(var(--frame-x) + 0.25rem); } }
 .card > * { position: relative; }
 .card:focus-visible { outline-color: var(--gold); outline-offset: 6px; }
 .card .label { color: var(--paper-label); letter-spacing: 0.28em; }
@@ -379,8 +383,9 @@ legend { padding: 0; margin-bottom: 0.5rem; }
 }
 .clue dt { color: var(--paper-label); font: 800 0.75rem/1.2 var(--f-body); text-transform: uppercase; letter-spacing: 0.18em; align-self: center; }
 .clue dd { margin: 0; font-weight: 700; min-width: 0; overflow-wrap: break-word; }
-/* With very large text or zoom the card is narrow: put each label above its value */
-@container (max-width: 12rem) { .clue { grid-template-columns: minmax(0, 1fr); } }
+/* On narrow phones, or with very large text or zoom, put each label above its value,
+   so long values like «δισεκατομμυριούχος» keep to one line */
+@container (max-width: 15.5rem) { .clue { grid-template-columns: minmax(0, 1fr); } }
 .hold { margin: 0; text-align: center; font-size: 0.9375rem; font-style: italic; color: var(--app-muted); }
 
 /* Hold-to-reveal: no text selection, callout or scrolling while the finger is down.
