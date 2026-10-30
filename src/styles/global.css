@@ -319,13 +319,14 @@ legend { padding: 0; margin-bottom: 0.5rem; }
 .dots i.now { width: 0.625rem; height: 1rem; background: var(--sun); box-shadow: 0 0 10px #f2b445aa; }
 
 /* Pass the phone */
-.pass { display: grid; justify-items: center; gap: 0.75rem; text-align: center; padding-top: 2rem; margin: 0; }
+.pass { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 0.75rem; text-align: center; padding-top: 2rem; margin: 0; }
 .pass:focus { outline: none; }
 .hand { font: 700 0.75rem/1.4 var(--f-body); letter-spacing: 0.24em; text-transform: uppercase; color: var(--coral); }
 .pass { container-type: inline-size; }
-/* Scales down so the longest word fits the line (about 0.66em per spaced letter in GFS Didot capitals) */
+/* Scales down so the longest word fits the line (about 0.82em per spaced letter in GFS Didot capitals;
+   wider letters like Μ still fit because the word breaks rather than overflows) */
 .big-name {
-  font: 400 clamp(1.5rem, min(1.75rem + 5vw, 100cqi / (var(--chars, 6) * 0.66)), 3.25rem)/1.1 var(--f-display);
+  font: 400 clamp(1.5rem, min(1.75rem + 5vw, 100cqi / (var(--chars, 6) * 0.82)), 3.25rem)/1.1 var(--f-display);
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold);
   text-wrap: balance; max-width: 100%; overflow-wrap: break-word; text-shadow: 0 0 14px #000;
 }
