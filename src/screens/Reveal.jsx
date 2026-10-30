@@ -1,0 +1,114 @@
+import { useEffect, useId, useState } from "react";
+import { Screen } from "../components/Screen.jsx";
+import { Dots } from "../components/Dots.jsx";
+import { Logo } from "../components/Logo.jsx";
+import { fitStyle } from "../lib/format.js";
+
+// Screens 5 and 6. One component for both roles so the background, card, angle, size and
+// buttons can never drift apart: only the text inside the card differs.
+// The card's contents are rendered only while it is shown, and never announced (no aria-live).
+export function Reveal({ round, index, total, isImposter, hintMode, revealMode, onNext }) {
+  const [shown, setShown] = useState(false);
+  const [seen, setSeen] = useState(false);
+  const needId = useId();
+  const hold = revealMode !== "tap";
+
+  const show = () => { setShown(true); setSeen(true); };
+  const hide = () => setShown(false);
+
+  // Hide the card if the phone is locked or the app is switched away.
+  useEffect(() => {
+    const onHidden = () => document.visibilityState === "hidden" && setShown(false);
+    document.addEventListener("visibilitychange", onHidden);
+    return () => document.removeEventListener("visibilitychange", onHidden);
+  }, []);
+
+  const holdHandlers = {
+    onPointerDown: (e) => {
+      if (e.button !== 0) return;
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+      show();
+    },
+    onPointerUp: hide,
+    onPointerCancel: hide,
+    onLostPointerCapture: hide,
+    onKeyDown: (e) => {
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        if (!e.repeat) show();
+      }
+    },
+    onKeyUp: (e) => {
+      if (e.key === " " || e.key === "Enter") hide();
+    },
+    onBlur: hide,
+    onContextMenu: (e) => e.preventDefault(), // long press on phones
+  };
+
+  const tapHandlers = {
+    "aria-pressed": shown,
+    onClick: () => (shown ? hide() : show()),
+  };
+
+  return (
+    <Screen title="Η κάρτα σου" titleClassName="visually-hidden" before={<Dots total={total} current={index} />}>
+      <div className="grow" />
+      <div className={`card${shown ? " open" : ""}`} tabIndex={0} role="group" aria-label="Η κάρτα σου">
+        {!shown ? (
+          <div className="card-back">
+            <Logo />
+            <span className="note">Κρυφή κάρτα</span>
+          </div>
+        ) : isImposter ? (
+          <>
+            <span className="label">Δεν ξέρεις τη λέξη</span>
+            <span className="word imp">Είσαι ο Imposter</span>
+            <dl className="clue">
+              {hintMode !== "hintOnly" && (
+                <>
+                  <dt>Κατηγορία</dt>
+                  <dd>{round.category}</dd>
+                </>
+              )}
+              {hintMode !== "category" && (
+                <>
+                  <dt>Στοιχείο</dt>
+                  <dd>{round.hint}</dd>
+                </>
+              )}
+            </dl>
+            <span className="note">Μπλόφαρε. Αν σε πιάσουν, έχεις μία ευκαιρία να μαντέψεις.</span>
+          </>
+        ) : (
+          <>
+            <span className="label">Η λέξη σου</span>
+            <span className="word" style={fitStyle(round.word)}>{round.word}</span>
+            <span className="note">Δώσε ένα στοιχείο που να δείχνει ότι την ξέρεις, χωρίς να τη φανερώνει.</span>
+          </>
+        )}
+      </div>
+      <div className="grow" />
+
+      <p className="hold">
+        {hold
+          ? shown ? "Άφησε το κουμπί για να κρυφτεί" : "Κράτα πατημένο για να δεις"
+          : shown ? "Πάτα ξανά για να κρυφτεί" : "Πάτα για να δεις"}
+      </p>
+      <div className="stack">
+        <button type="button" className={`btn reveal-btn${shown ? " active" : ""}`} {...(hold ? holdHandlers : tapHandlers)}>
+          {hold ? "Κράτα για να δεις" : "Δείξε την κάρτα"}
+        </button>
+        <button
+          type="button"
+          className="btn dark"
+          aria-disabled={!seen || undefined}
+          aria-describedby={!seen ? needId : undefined}
+          onClick={() => { if (seen) { hide(); onNext(); } }}
+        >
+          Το είδα · Επόμενος
+        </button>
+        {!seen && <span id={needId} className="visually-hidden">Δες πρώτα την κάρτα σου.</span>}
+      </div>
+    </Screen>
+  );
+}
