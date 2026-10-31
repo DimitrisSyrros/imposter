@@ -101,6 +101,9 @@ button, input { font: inherit; color: inherit; }
 }
 .h:focus { outline: none; } /* focused programmatically on screen change, not a control */
 .sub { color: var(--app-muted); margin: 0; }
+/* Who goes first when the group plays out loud */
+.starter { margin: 0; font-size: 1.125rem; overflow-wrap: break-word; }
+.starter strong { font-weight: 800; color: var(--gold); }
 .label {
   font-family: var(--f-body);
   font-size: 0.75rem;
@@ -390,10 +393,15 @@ legend { padding: 0; margin-bottom: 0.5rem; }
 .hold { margin: 0; text-align: center; font-size: 0.9375rem; font-style: italic; color: var(--app-muted); }
 
 /* Hold-to-reveal: no text selection, callout or scrolling while the finger is down.
-   The whole card screen, not just the button, so a long press near it doesn't open the phone's menu. */
-.app:has(.reveal-btn) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-.reveal-btn { touch-action: none; }
-.reveal-btn.active { translate: 0 1px; filter: brightness(.95); }
+   The whole card screen, not just the card, so a long press near it doesn't open the phone's menu.
+   The button covers the whole card, frame included, and has no look of its own beyond the focus ring. */
+.app:has(.card-hit) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.card > .card-hit {
+  position: absolute; inset: 0; z-index: 1;
+  background: none; border: 0; padding: 0; margin: 0; border-radius: 0; cursor: pointer;
+  touch-action: none; -webkit-tap-highlight-color: transparent;
+}
+.card-hit:focus-visible { outline-color: var(--gold); outline-offset: 6px; }
 
 /* Clue round */
 .timer-block { display: grid; justify-items: center; gap: 0.75rem; }
@@ -489,6 +497,51 @@ legend { padding: 0; margin-bottom: 0.5rem; }
 .tips { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.5rem; color: var(--app-muted); }
 .tips li::marker { color: var(--gold); }
 
+/* End-of-round animation (Celebrate.jsx): plays once over the screen, never takes a tap. */
+.celebrate { position: fixed; inset: 0; z-index: 10; pointer-events: none; overflow: hidden; }
+.burst { position: absolute; left: var(--x); top: var(--y); }
+.burst i {
+  position: absolute; width: 0.5rem; height: 0.5rem; margin: -0.25rem; border-radius: 50%;
+  background: var(--sun-hi); box-shadow: 0 0 8px var(--sun);
+  opacity: 0; animation: spark 1.3s cubic-bezier(.2, .7, .3, 1) var(--delay) both;
+}
+.burst i:nth-child(3n + 1) { background: var(--gold); }
+.burst i:nth-child(3n + 2) { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+.lose .burst i { background: var(--coral); box-shadow: 0 0 8px var(--red); }
+.lose .burst i:nth-child(2n) { background: var(--red); }
+@keyframes spark {
+  0% { opacity: 1; transform: rotate(var(--a)) translateY(0) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) translateY(1.5rem) scale(.4); }
+}
+.peek {
+  position: absolute; left: 50%; bottom: 0; width: 7rem; height: 7rem; margin-left: -3.5rem;
+  display: grid; place-items: center; border-radius: 50%;
+  background: radial-gradient(circle, #ff8a92, var(--red) 70%);
+  box-shadow: 0 0 0 3px #060a0b, 0 0 0 4px var(--coral), 0 0 36px #c8102eaa;
+  animation: peek 2.6s ease-in-out both;
+}
+.peek svg { width: 4.5rem; height: 4.5rem; }
+.peek path { fill: #1a0406; }
+.peek ellipse { fill: #ffd0d4; }
+.peek .grin { fill: none; stroke: #ffd0d4; stroke-width: 2.5; stroke-linecap: round; }
+.peek .wink { transform-box: fill-box; transform-origin: center; animation: wink 2.6s both; }
+@keyframes peek {
+  0% { transform: translateY(110%) rotate(-12deg); }
+  22% { transform: translateY(-40%) rotate(8deg); }
+  32%, 62% { transform: translateY(-30%) rotate(-4deg); }
+  42% { transform: translateY(-34%) rotate(4deg); }
+  52% { transform: translateY(-30%) rotate(-4deg); }
+  100% { transform: translateY(110%) rotate(14deg); }
+}
+@keyframes wink {
+  0%, 38%, 50%, 100% { transform: scaleY(1); }
+  42%, 46% { transform: scaleY(.1); }
+}
+/* the verdict stamp lands with the animation */
+.stamp.pop { display: inline-block; animation: stamp-pop .5s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes stamp-pop { from { transform: scale(2.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -497,4 +550,5 @@ legend { padding: 0; margin-bottom: 0.5rem; }
     scroll-behavior: auto !important;
   }
   .mask, .card, .stamp { rotate: none; }
+  .celebrate { display: none; }
 }

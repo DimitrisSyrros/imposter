@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Screen } from "../components/Screen.jsx";
 import { RoundFacts } from "../components/RoundFacts.jsx";
+import { Celebrate } from "../components/Celebrate.jsx";
 import { verdict } from "../game/state.js";
 
-// Screen 9. If the imposter is caught, the word stays hidden until they have said their guess
-// out loud; then the group reveals it and says whether the guess was right.
+// Screen 9. Caught or not, the word stays hidden until the imposter has said their guess out loud;
+// then the group reveals it and says whether the guess was right. A caught imposter wins only by
+// finding the word; one who got away wins either way, and the guess is for the glory.
 export function Result({ players, round, hintMode, onNewRound, onPlayers }) {
   const { counts, top, caught } = verdict(players.length, round);
   // "guess" → waiting for the caught imposter's guess, "judge" → word shown, did they get it?
-  // "done" → final. When nobody is caught there is nothing to guess.
-  const [phase, setPhase] = useState(caught === null ? "done" : "guess");
+  // "done" → final.
+  const [phase, setPhase] = useState("guess");
   const [guessed, setGuessed] = useState(false);
   const outcome = useRef(null);
 
@@ -18,15 +20,23 @@ export function Result({ players, round, hintMode, onNewRound, onPlayers }) {
   const wordShown = phase !== "guess";
 
   let stamp, stampKind;
-  if (caught === null) [stamp, stampKind] = [many ? "Γλίτωσαν" : "Γλίτωσε", "lose"];
+  if (caught === null) [stamp, stampKind] = [phase === "done" && guessed ? (many ? "Γλίτωσαν και τη βρήκαν" : "Γλίτωσε και τη βρήκε") : many ? "Γλίτωσαν" : "Γλίτωσε", "lose"];
   else if (phase === "done") [stamp, stampKind] = guessed ? ["Βρήκε τη λέξη", "lose"] : ["Η παρέα κερδίζει", "win"];
   else [stamp, stampKind] = [many ? "Πιάσατε έναν" : "Τον πιάσατε", "win"];
 
   let line;
+  const wins = many ? "Οι Imposters κερδίζουν." : "Ο Imposter κερδίζει.";
   if (caught === null) {
-    line = top.length > 1
-      ? `Ισοψηφία ανάμεσα σε: ${top.map((i) => players[i]).join(", ")}. ${many ? "Οι Imposters κερδίζουν." : "Ο Imposter κερδίζει."}`
-      : `Οι περισσότερες ψήφοι πήγαν σε: ${players[top[0]]}. ${many ? "Οι Imposters κερδίζουν." : "Ο Imposter κερδίζει."}`;
+    const votes = top.length > 1
+      ? `Ισοψηφία ανάμεσα σε: ${top.map((i) => players[i]).join(", ")}.`
+      : `Οι περισσότερες ψήφοι πήγαν σε: ${players[top[0]]}.`;
+    if (phase === "guess") {
+      line = `${votes} ${wins} Πριν δείτε τη λέξη: ${impNames}, ${many ? "πείτε" : "πες"} δυνατά ποια νομίζ${many ? "ετε" : "εις"} ότι είναι.`;
+    } else if (phase === "judge") {
+      line = "Ήταν σωστή η λέξη που είπε;";
+    } else {
+      line = guessed ? `${many ? "Γλίτωσαν και βρήκαν" : "Γλίτωσε και βρήκε"} και τη λέξη. ${wins}` : `Η λέξη δεν βρέθηκε, αλλά ${many ? "γλίτωσαν" : "γλίτωσε"}. ${wins}`;
+    }
   } else if (phase === "guess") {
     line = `Τελευταία ευκαιρία: ${players[caught]}, πες δυνατά ποια νομίζεις ότι είναι η λέξη. Αν τη βρεις, κερδίζεις.`;
   } else if (phase === "judge") {
@@ -39,8 +49,8 @@ export function Result({ players, round, hintMode, onNewRound, onPlayers }) {
 
   // After the group judges the guess, move focus to the new outcome so it is read out.
   useEffect(() => {
-    if (caught !== null && phase === "done") outcome.current?.focus();
-  }, [phase, caught]);
+    if (phase === "done") outcome.current?.focus();
+  }, [phase]);
 
   const max = Math.max(1, ...counts);
   const rows = counts
@@ -53,11 +63,12 @@ export function Result({ players, round, hintMode, onNewRound, onPlayers }) {
       titleClassName="verdict"
       title={
         <>
-          <span className={`stamp ${stampKind}`}>{stamp}</span>
+          <span className={`stamp ${stampKind}${phase === "done" ? " pop" : ""}`}>{stamp}</span>
           <span className="h">{many ? `Οι Imposters: ${impNames}` : `Ο Imposter: ${impNames}`}</span>
         </>
       }
     >
+      {phase === "done" && <Celebrate kind={stampKind} />}
       <p className="sub center" ref={outcome} tabIndex={-1}>{line}</p>
 
       <RoundFacts round={round} hintMode={hintMode} wordShown={wordShown} />

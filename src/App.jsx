@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from "react";
 import { save } from "./lib/storage.js";
 import { useWakeLock } from "./lib/useWakeLock.js";
-import { createRound, initState, reducer } from "./game/state.js";
+import { createRound, initState, reducer, turnOrder } from "./game/state.js";
 import { Home } from "./screens/Home.jsx";
 import { Players } from "./screens/Players.jsx";
 import { Settings } from "./screens/Settings.jsx";
@@ -16,8 +16,8 @@ import { Unmask } from "./screens/Unmask.jsx";
 const ROUND_SCREENS = new Set(["pass", "reveal", "clues", "votePass", "vote", "result", "unmask"]);
 
 const REVEAL_NOTE = {
-  hold: "Η λέξη εμφανίζεται μόνο όσο κρατάς πατημένο το κουμπί.",
-  tap: "Η λέξη εμφανίζεται όταν πατήσεις το κουμπί και κρύβεται με δεύτερο πάτημα.",
+  hold: "Η λέξη εμφανίζεται μόνο όσο κρατάς πατημένη την κάρτα.",
+  tap: "Η λέξη εμφανίζεται όταν πατήσεις την κάρτα και κρύβεται με δεύτερο πάτημα.",
 };
 
 // Flow: home → players → settings → (pass → reveal) per player, then
@@ -27,6 +27,7 @@ export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, initState);
   const { screen, players, settings, round } = state;
   const go = (screen) => dispatch({ type: "go", screen });
+  const revealPlayer = round && turnOrder(players.length, round.start)[round.revealIndex];
   const deal = (number = 1) => dispatch({ type: "deal", round: createRound(players, settings, number) });
 
   useEffect(() => save("players", players), [players]);
@@ -54,7 +55,7 @@ export default function App() {
       return (
         <Pass
           key={`pass-${round.number}-${round.revealIndex}`}
-          name={players[round.revealIndex]}
+          name={players[revealPlayer]}
           index={round.revealIndex}
           total={players.length}
           note={REVEAL_NOTE[settings.revealMode]}
@@ -68,7 +69,7 @@ export default function App() {
           round={round}
           index={round.revealIndex}
           total={players.length}
-          isImposter={round.imposters.includes(round.revealIndex)}
+          isImposter={round.imposters.includes(revealPlayer)}
           hintMode={settings.hintMode}
           revealMode={settings.revealMode}
           onNext={() => dispatch({ type: "nextPlayer" })}

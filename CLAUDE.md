@@ -24,14 +24,14 @@ One phone is passed around the table. Everything runs in the browser on that pho
   - Normal player: "Η λέξη σου" + the word.
   - Imposter: "Είσαι ο Imposter" + the category, plus the hint if hints are on, plus a short "bluff" line.
   - Known limitation: at normal text sizes and in landscape the two cards are exactly the same size. At 200% browser zoom or 200% OS text they are not, because the imposter's text needs more room (for example about 305×615 px for a word card against 313×930 px for the imposter card at 200% text on a 360 px phone). Accepted for now. Fixing it would mean taller cards for everyone at large sizes, or putting the real word, hidden, on the imposter's phone.
-- **Hold to reveal:** the card shows only while the button is held. Releasing it hides the card.
+- **Hold to reveal:** the card itself is the control (no separate button): it shows only while the card is held. Releasing it hides the card. In tap mode one tap on the card shows it and another hides it.
 - **Hint mode setting:** "Μόνο κατηγορία", "Κατηγορία + στοιχείο" (the default) or "Μόνο στοιχείο". In hint-only mode the category is not shown anywhere during the round (the clue-round bar hides it too).
 - **Number of imposters:** a stepper, default 1.
 - **Timer:** an on/off switch plus a duration (default 3:00). When it's off, hide the duration in settings and the countdown ring on the clue-round screen.
-- **Clue order:** start from a random player each round.
+- **Turn order:** each round picks a random starting player. They see their card first and the others follow in the order the players were entered; with «Κρυφή ψηφοφορία» on, the clue round starts from the same player; with it off, the «Ψηφίστε φωναχτά» screen shows «Ξεκινά: <name>» and the full order.
 - **Voting:** a «Κρυφή ψηφοφορία» switch in round settings, off by default.
-  - Off: after the last card, one screen. «Αποκάλυψε τον Imposter» shows the name, then «Τον πιάσατε;». If not caught, the imposter wins. If caught, they guess out loud, the word is shown, then «Το βρήκε» / «Δεν το βρήκε». The clue round and timer are skipped (the group plays out loud).
-  - On: the clue-round screen (with the optional timer), then a secret vote, one player at a time on the same phone, then the result screen.
+  - Off: after the last card, one screen. «Αποκάλυψε τον Imposter» shows the name, then «Τον πιάσατε;». Either way the imposter then guesses out loud, the word is shown, then «Το βρήκε» / «Δεν το βρήκε». Caught: they win only if the guess is right. Not caught: they win either way. The clue round and timer are skipped (the group plays out loud).
+  - On: the clue-round screen (with the optional timer), then a secret vote, one player at a time on the same phone, then the result screen. The result names the imposter but keeps the word hidden until they have guessed out loud, caught or not. Caught: they win only if the guess is right. Not caught: they win either way, and the guess is for the glory.
 - **Result:** reveal the imposter, the word, the hint they had and the vote tally. Then offer "the imposter guesses" and "new round".
 
 ## Screens

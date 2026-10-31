@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Screen } from "../components/Screen.jsx";
-import { clueOrder } from "../game/state.js";
+import { turnOrder } from "../game/state.js";
 import { useCountdown } from "../lib/useCountdown.js";
 import { formatTime, spokenTime } from "../lib/format.js";
 
@@ -53,7 +53,7 @@ function Timer({ total, onDone }) {
 }
 
 export function Clues({ players, round, settings, dispatch, onVote }) {
-  const order = clueOrder(players.length, round.clueStart);
+  const order = turnOrder(players.length, round.start);
   const current = round.clues.length; // position in `order` whose turn it is
   const allDone = current >= order.length;
   const [text, setText] = useState("");

@@ -60,6 +60,11 @@ export function Reveal({ round, index, total, isImposter, hintMode, revealMode, 
     <Screen title="Η κάρτα σου" titleClassName="visually-hidden" before={<Dots total={total} current={index} />}>
       <div className="grow" />
       <div className={`card${shown ? " open" : ""}`} tabIndex={0} role="group" aria-label="Η κάρτα σου">
+        {/* The whole card is the reveal control: a real button laid over it, so the text below
+            keeps its structure and is read only when the player moves to it. */}
+        <button type="button" className="card-hit" {...(hold ? holdHandlers : tapHandlers)}>
+          <span className="visually-hidden">{hold ? "Κράτα πατημένη την κάρτα για να τη δεις" : "Δείξε την κάρτα"}</span>
+        </button>
         {!shown ? (
           <div className="card-back">
             <Logo />
@@ -97,13 +102,10 @@ export function Reveal({ round, index, total, isImposter, hintMode, revealMode, 
 
       <p className="hold">
         {hold
-          ? shown ? "Άφησε το κουμπί για να κρυφτεί" : "Κράτα πατημένο για να δεις"
-          : shown ? "Πάτα ξανά για να κρυφτεί" : "Πάτα για να δεις"}
+          ? shown ? "Άφησε την κάρτα για να κρυφτεί" : "Κράτα πατημένη την κάρτα για να δεις"
+          : shown ? "Πάτα ξανά την κάρτα για να κρυφτεί" : "Πάτα την κάρτα για να δεις"}
       </p>
       <div className="stack">
-        <button type="button" className={`btn reveal-btn${shown ? " active" : ""}`} {...(hold ? holdHandlers : tapHandlers)}>
-          {hold ? "Κράτα για να δεις" : "Δείξε την κάρτα"}
-        </button>
         <button
           type="button"
           className="btn dark"

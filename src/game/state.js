@@ -60,8 +60,8 @@ export function initState() {
 }
 
 // Builds a round outside the reducer, because it is random and writes the used words.
-// Clue order: seating order, starting from the round's random player.
-export function clueOrder(playerCount, start) {
+// Turn order for both the cards and the clues: seating order, starting from the round's random player.
+export function turnOrder(playerCount, start) {
   return Array.from({ length: playerCount }, (_, i) => (start + i) % playerCount);
 }
 
@@ -80,8 +80,8 @@ export function createRound(players, settings, number = 1) {
     hint: pick.hint,
     category: pick.category,
     imposters: shuffled.slice(0, count).sort((a, b) => a - b),
-    clueStart: Math.floor(Math.random() * n), // clue order: seating order from a random player
-    revealIndex: 0,
+    start: Math.floor(Math.random() * n), // the random player who sees their card first and gives the first clue
+    revealIndex: 0, // how many cards have been seen; the player is turnOrder(n, start)[revealIndex]
     clues: [], // clues[i] = what the i-th player in clue order said (may be empty)
     votes: [], // votes[voter] = index of the player they picked; players vote in seating order
   };
