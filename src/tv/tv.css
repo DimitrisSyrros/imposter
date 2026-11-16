@@ -1,4 +1,6 @@
 /* The TV version (/#tv). Loaded only with the TV code, so phones never download it.
+   TV browsers often run an older Chromium, so this sheet sticks to vh (no dvh: TVs have no
+   browser bars that come and go) and transform (not the newer translate property).
    Sizes are in rem, and the root size follows the screen: about 24px on a 1920×1080 TV,
    capped by the height so a 16:9 screen never has to scroll. */
 html.tv { font-size: max(14px, min(1.25vw, 2.2vh)); }
@@ -7,7 +9,7 @@ html.tv body { font-size: 1.0625rem; }
 /* Every TV screen: the landscape facade with the same vignette as the phone */
 .tvs {
   position: relative; isolation: isolate; overflow: hidden;
-  min-height: 100dvh; display: flex; flex-direction: column; gap: 1rem;
+  min-height: 100vh; display: flex; flex-direction: column; gap: 1rem;
   padding: max(2.5rem, env(safe-area-inset-top)) max(4vw, env(safe-area-inset-right)) max(2.5rem, env(safe-area-inset-bottom)) max(4vw, env(safe-area-inset-left));
   background:
     radial-gradient(ellipse 110% 90% at 50% 45%, transparent 45%, #000c 100%),
@@ -26,7 +28,7 @@ html.tv body { font-size: 1.0625rem; }
 
 /* The reused phone screens (Players, Settings) sit in a wider centred column over the facade */
 .tv-column {
-  min-height: 100dvh;
+  min-height: 100vh;
   background:
     radial-gradient(ellipse 110% 90% at 50% 45%, transparent 45%, #000c 100%),
     linear-gradient(#0b111488, #0b111488),
@@ -38,7 +40,7 @@ html.tv body { font-size: 1.0625rem; }
 /* A 16:9 box that covers the screen like the picture does, so overlays line up with its windows */
 .tv-scenes, .tv-end {
   position: absolute; left: 50%; top: 50%; z-index: -1;
-  width: max(100%, 100dvh * 1672 / 941); aspect-ratio: 1672 / 941; translate: -50% -50%;
+  width: max(100%, 100vh * 1672 / 941); aspect-ratio: 1672 / 941; transform: translate(-50%, -50%);
 }
 .tv-scene { position: absolute; inset: 0; background: center / cover no-repeat; }
 .s1 { background-image: url("../assets/tv-home-1.webp"); }
@@ -58,7 +60,7 @@ html.tv body { font-size: 1.0625rem; }
 .tv-home .home-tagline { font-size: 1rem; }
 .tv-home .home-title { font-size: 4.25rem; letter-spacing: 0.16em; }
 /* Two buttons either side of the onlookers, so the three figures stay in view */
-.tv-flank { display: flex; justify-content: center; gap: 24vw; padding-bottom: 6dvh; align-self: stretch; }
+.tv-flank { display: flex; justify-content: center; gap: 24vw; padding-bottom: 6vh; align-self: stretch; }
 .tv-flank .btn { min-width: 15rem; }
 .tv-flank .btn.ghost { background: #060a0bcc; }
 
@@ -71,7 +73,7 @@ html.tv body { font-size: 1.0625rem; }
 .tv-code { display: grid; gap: 1rem; align-content: center; }
 .tv-bigcode { margin: 0; font: 400 5rem/1 var(--f-display); letter-spacing: 0.08em; color: var(--gold); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tv-qrrow { display: flex; align-items: center; gap: 1.5rem; }
-.qr { width: min(14rem, 30dvh); height: auto; flex: none; border-radius: 0.25rem; box-shadow: 0 0 0 0.375rem #f6ead8; }
+.qr { width: min(14rem, 30vh); height: auto; flex: none; border-radius: 0.25rem; box-shadow: 0 0 0 0.375rem #f6ead8; }
 .tv-qrrow .sub { max-width: 18rem; }
 .tv-qrrow .sub b { color: var(--app-fg); }
 .tv-seats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(8rem, 22%), 1fr)); gap: 1rem 1.25rem; }
@@ -99,7 +101,7 @@ html.tv body { font-size: 1.0625rem; }
 .tv-chips li { padding: 0.25rem 0.875rem; background: var(--surface); box-shadow: inset 0 0 0 1px var(--app-line); color: var(--app-muted); }
 .tv-clues { flex: 1; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5vw; align-items: center; }
 .tv-turn { display: grid; gap: 1.5rem; }
-.tv-timer { width: min(24rem, 55dvh); height: auto; aspect-ratio: 1; }
+.tv-timer { width: min(24rem, 55vh); height: auto; aspect-ratio: 1; }
 .tv-timer b { font-size: 5.5rem; }
 .tv-timer small { font-size: 1rem; }
 
@@ -128,7 +130,7 @@ html.tv body { font-size: 1.0625rem; }
 .tv-unmask.is-done:has(.tv-end.lose) .tv-word { animation-delay: 3.2s; }
 .tv-unmask.is-done:has(.tv-end.lose) .tv-flank { animation-delay: 3.4s; }
 .tv-unmask.is-done:has(.tv-end.lose) .stamp.pop { animation-delay: 3s; }
-@keyframes tv-fade-up { from { opacity: 0; translate: 0 1rem; } to { opacity: 1; translate: 0 0; } }
+@keyframes tv-fade-up { from { opacity: 0; transform: translateY(1rem); } to { opacity: 1; transform: none; } }
 
 /* End of round (TvEnd.jsx) */
 .tv-end .layer { position: absolute; inset: 0; pointer-events: none; }

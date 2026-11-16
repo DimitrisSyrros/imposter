@@ -153,6 +153,8 @@ The app should open instantly on a mid-range phone on mobile data, and be fully 
 
 A big screen runs the round and each phone shows only its own card. Still **no backend**: the TV and the phones never talk.
 
+- **Opening it:** `/#tv`, or just the site address in a TV's own browser (Samsung, LG, Sony, Fire TV, Android TV are recognised by user agent in `main.jsx`). `#phone` forces the phone app. TV browsers often run an older Chromium, so `tv.css` avoids `dvh` and the standalone `translate` property.
+
 - **Round code:** the TV deals the round (`createRound`, used words kept on the TV) and shows a 9-digit code plus a QR code. Each phone works out its card from the code (`src/tv/code.js`): word, hint mode, player count and imposter seats, scrambled, with a word-list version digit and a check digit. A mistyped code or an older cached word list is rejected with a message, never dealt as a wrong card.
 - **QR:** a link `/#j=<code>&n=<names>` that the phone's own camera opens. The app has no camera code (`Permissions-Policy` keeps the camera off). Typing the code works too: «Μπες σε γύρο TV» on the phone home, seats then show as «Θέση N».
 - **Phone (`Join.jsx`):** code → seat → card. The card is `Reveal` with a «Γύρος TV · <name>» bar instead of the dots, and «Νέος γύρος · νέος κωδικός» instead of «Το είδα · Επόμενος». The hold/tap switch is on the seat screen, because players coming from the QR never see the settings.
