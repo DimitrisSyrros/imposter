@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { save } from "./lib/storage.js";
 import { useWakeLock } from "./lib/useWakeLock.js";
 import { createRound, initState, reducer, turnOrder } from "./game/state.js";
@@ -12,8 +12,10 @@ import { Clues } from "./screens/Clues.jsx";
 import { Vote } from "./screens/Vote.jsx";
 import { Result } from "./screens/Result.jsx";
 import { Unmask } from "./screens/Unmask.jsx";
+import { Join } from "./screens/Join.jsx";
+import { readJoinHash } from "./tv/code.js";
 
-const ROUND_SCREENS = new Set(["pass", "reveal", "clues", "votePass", "vote", "result", "unmask"]);
+const ROUND_SCREENS = new Set(["pass", "reveal", "clues", "votePass", "vote", "result", "unmask", "join"]);
 
 const REVEAL_NOTE = {
   hold: "Η λέξη εμφανίζεται μόνο όσο κρατάς πατημένη την κάρτα.",
@@ -23,10 +25,32 @@ const REVEAL_NOTE = {
 // Flow: home → players → settings → (pass → reveal) per player, then
 //   secret vote on:  clues → (votePass → vote) per player → result
 //   secret vote off: unmask (the group talks and votes out loud)
+//   with a TV: join (the phone shows only its own card, from the TV's round code)
 export default function App() {
-  const [state, dispatch] = useReducer(reducer, undefined, initState);
+  // A QR from the TV opens the site at #j=<code>&n=<names>.
+  const [link, setLink] = useState(() => readJoinHash(location.hash));
+  const [state, dispatch] = useReducer(reducer, undefined, () => ({ ...initState(), screen: link ? "join" : "home" }));
   const { screen, players, settings, round } = state;
   const go = (screen) => dispatch({ type: "go", screen });
+
+  // Scanning the next round's QR while the app is open only changes the hash.
+  useEffect(() => {
+    const onHash = () => {
+      const next = readJoinHash(location.hash);
+      if (next) {
+        setLink(next);
+        dispatch({ type: "go", screen: "join" });
+      }
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  const leaveJoin = () => {
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+    setLink(null);
+    go("home");
+  };
   const revealPlayer = round && turnOrder(players.length, round.start)[round.revealIndex];
   const deal = (number = 1) => dispatch({ type: "deal", round: createRound(players, settings, number) });
 
@@ -36,7 +60,17 @@ export default function App() {
 
   switch (screen) {
     case "home":
-      return <Home onNewGame={() => go("players")} onHowTo={() => go("howto")} />;
+      return <Home onNewGame={() => go("players")} onJoinTv={() => go("join")} onHowTo={() => go("howto")} />;
+    case "join":
+      return (
+        <Join
+          key={link ? `${link.code}-${link.names?.join()}` : "typed"}
+          link={link}
+          revealMode={settings.revealMode}
+          onRevealMode={(v) => dispatch({ type: "updateSettings", patch: { revealMode: v } })}
+          onHome={leaveJoin}
+        />
+      );
     case "howto":
       return <HowTo onBack={() => go("home")} onNewGame={() => go("players")} />;
     case "players":

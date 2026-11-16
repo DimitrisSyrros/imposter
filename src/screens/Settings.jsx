@@ -45,8 +45,11 @@ function SwitchRow({ label, on, onToggle, describedBy }) {
   );
 }
 
-export function Settings({ settings, dispatch, onBack, onDeal }) {
+// `tv`: the TV's round settings. The vote is always out loud there (the phones can't send votes),
+// the timer runs on the TV, and «Εμφάνιση κάρτας» is chosen on each phone instead.
+export function Settings({ settings, dispatch, onBack, onDeal, tv = false }) {
   const set = (patch) => dispatch({ type: "updateSettings", patch });
+  const timerShown = tv || settings.secretVote;
   const modeId = useId();
   const selected = new Set(settings.categories);
   const none = selected.size === 0;
@@ -99,11 +102,13 @@ export function Settings({ settings, dispatch, onBack, onDeal }) {
 
       <div className="stack">
         <div className="timerset">
-          <SwitchRow label="Κρυφή ψηφοφορία" on={settings.secretVote} describedBy={modeId} onToggle={() => set({ secretVote: !settings.secretVote })} />
-          {settings.secretVote && (
-            <SwitchRow label="Χρονόμετρο" on={settings.timerOn} onToggle={() => set({ timerOn: !settings.timerOn })} />
+          {!tv && (
+            <SwitchRow label="Κρυφή ψηφοφορία" on={settings.secretVote} describedBy={modeId} onToggle={() => set({ secretVote: !settings.secretVote })} />
           )}
-          {settings.secretVote && settings.timerOn && (
+          {timerShown && (
+            <SwitchRow label="Χρονόμετρο" on={settings.timerOn} describedBy={tv ? modeId : undefined} onToggle={() => set({ timerOn: !settings.timerOn })} />
+          )}
+          {timerShown && settings.timerOn && (
             <Stepper
               label="Διάρκεια"
               value={settings.timerSeconds}
@@ -118,22 +123,26 @@ export function Settings({ settings, dispatch, onBack, onDeal }) {
           )}
         </div>
         <p id={modeId} className="privacy left">
-          {settings.secretVote
-            ? "Γύρος στοιχείων στο κινητό και μυστική ψήφος, ένας ένας."
-            : "Στοιχεία και ψήφος φωναχτά. Μετά τις κάρτες, το κινητό αποκαλύπτει τον Imposter."}
+          {tv
+            ? "Στοιχεία και ψήφος φωναχτά. Η TV μετράει τον χρόνο και αποκαλύπτει τον Imposter."
+            : settings.secretVote
+              ? "Γύρος στοιχείων στο κινητό και μυστική ψήφος, ένας ένας."
+              : "Στοιχεία και ψήφος φωναχτά. Μετά τις κάρτες, το κινητό αποκαλύπτει τον Imposter."}
         </p>
       </div>
 
-      <Segmented
-        legend="Εμφάνιση κάρτας"
-        name="revealMode"
-        value={settings.revealMode}
-        onChange={(v) => set({ revealMode: v })}
-        options={[
-          { value: "hold", label: "Κράτα πατημένο" },
-          { value: "tap", label: "Πάτα για εμφάνιση / απόκρυψη" },
-        ]}
-      />
+      {!tv && (
+        <Segmented
+          legend="Εμφάνιση κάρτας"
+          name="revealMode"
+          value={settings.revealMode}
+          onChange={(v) => set({ revealMode: v })}
+          options={[
+            { value: "hold", label: "Κράτα πατημένο" },
+            { value: "tap", label: "Πάτα για εμφάνιση / απόκρυψη" },
+          ]}
+        />
+      )}
 
       <div className="grow" />
       {none && <p className="sub" id="settings-need">Διάλεξε τουλάχιστον μία κατηγορία.</p>}

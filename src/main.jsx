@@ -1,13 +1,28 @@
-import { StrictMode } from "react";
+import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles/fonts.css";
 import "./styles/global.css";
 import App from "./App.jsx";
 
+// /#tv opens the big-screen version. Its code, styles and pictures load only there, never on phones.
+const isTv = () => location.hash.startsWith("#tv");
+const tv = isTv();
+const TvApp = lazy(() => import("./tv/TvApp.jsx"));
+document.documentElement.classList.toggle("tv", tv);
+window.addEventListener("hashchange", () => {
+  if (isTv() !== tv) location.reload();
+});
+
 const root = createRoot(document.getElementById("root"));
 root.render(
   <StrictMode>
-    <App />
+    {tv ? (
+      <Suspense fallback={null}>
+        <TvApp />
+      </Suspense>
+    ) : (
+      <App />
+    )}
   </StrictMode>,
 );
 

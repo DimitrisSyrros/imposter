@@ -5,7 +5,7 @@ import { Avatar } from "../components/Avatar.jsx";
 import { Stepper } from "../components/Stepper.jsx";
 import { MAX_NAME_LENGTH, MAX_PLAYERS, MIN_PLAYERS, maxImposters } from "../game/state.js";
 
-export function Players({ players, imposters, dispatch, onBack, onNext }) {
+export function Players({ players, imposters, dispatch, onBack, onNext, tv = false }) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const input = useRef(null);
@@ -49,7 +49,7 @@ export function Players({ players, imposters, dispatch, onBack, onNext }) {
           ))}
         </ul>
       ) : (
-        <p className="sub">Πρόσθεσε τουλάχιστον {MIN_PLAYERS} παίκτες. Τα ονόματα μένουν στο κινητό για την επόμενη φορά.</p>
+        <p className="sub">Πρόσθεσε τουλάχιστον {MIN_PLAYERS} παίκτες. Τα ονόματα μένουν {tv ? "στην TV" : "στο κινητό"} για την επόμενη φορά.</p>
       )}
 
       {full ? (

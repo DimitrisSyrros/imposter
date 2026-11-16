@@ -7,7 +7,9 @@ import { fitStyle } from "../lib/format.js";
 // Screens 5 and 6. One component for both roles so the background, card, angle, size and
 // buttons can never drift apart: only the text inside the card differs.
 // The card's contents are rendered only while it is shown, and never announced (no aria-live).
-export function Reveal({ round, index, total, isImposter, hintMode, revealMode, onNext }) {
+// With a TV (`header` and `actions` given, no `onNext`) there is no passing the phone:
+// the header replaces the progress dots and `actions` replace «Το είδα · Επόμενος».
+export function Reveal({ round, index, total, isImposter, hintMode, revealMode, onNext, header, actions }) {
   const [shown, setShown] = useState(false);
   const [seen, setSeen] = useState(false);
   const needId = useId();
@@ -57,7 +59,7 @@ export function Reveal({ round, index, total, isImposter, hintMode, revealMode, 
   };
 
   return (
-    <Screen title="Η κάρτα σου" titleClassName="visually-hidden" before={<Dots total={total} current={index} />}>
+    <Screen title="Η κάρτα σου" titleClassName="visually-hidden" before={header ?? <Dots total={total} current={index} />}>
       <div className="grow" />
       <div className={`card${shown ? " open" : ""}`} tabIndex={0} role="group" aria-label="Η κάρτα σου">
         {/* The whole card is the reveal control: a real button laid over it, so the text below
@@ -105,18 +107,22 @@ export function Reveal({ round, index, total, isImposter, hintMode, revealMode, 
           ? shown ? "Άφησε την κάρτα για να κρυφτεί" : "Κράτα πατημένη την κάρτα για να δεις"
           : shown ? "Πάτα ξανά την κάρτα για να κρυφτεί" : "Πάτα την κάρτα για να δεις"}
       </p>
-      <div className="stack">
-        <button
-          type="button"
-          className="btn dark"
-          aria-disabled={!seen || undefined}
-          aria-describedby={!seen ? needId : undefined}
-          onClick={() => { if (seen) { hide(); onNext(); } }}
-        >
-          Το είδα · Επόμενος
-        </button>
-        {!seen && <span id={needId} className="visually-hidden">Δες πρώτα την κάρτα σου.</span>}
-      </div>
+      {onNext ? (
+        <div className="stack">
+          <button
+            type="button"
+            className="btn dark"
+            aria-disabled={!seen || undefined}
+            aria-describedby={!seen ? needId : undefined}
+            onClick={() => { if (seen) { hide(); onNext(); } }}
+          >
+            Το είδα · Επόμενος
+          </button>
+          {!seen && <span id={needId} className="visually-hidden">Δες πρώτα την κάρτα σου.</span>}
+        </div>
+      ) : (
+        actions
+      )}
     </Screen>
   );
 }

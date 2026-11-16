@@ -149,6 +149,19 @@ The app should open instantly on a mid-range phone on mobile data, and be fully 
 - **Service worker:** precache the whole app (`vite-plugin-pwa` with `registerType: "autoUpdate"`), so later visits load from cache with no network at all.
 - **Check:** run `npm run build`, look at the bundle size, and run Lighthouse on the production build.
 
+## TV version (`/#tv`)
+
+A big screen runs the round and each phone shows only its own card. Still **no backend**: the TV and the phones never talk.
+
+- **Round code:** the TV deals the round (`createRound`, used words kept on the TV) and shows a 9-digit code plus a QR code. Each phone works out its card from the code (`src/tv/code.js`): word, hint mode, player count and imposter seats, scrambled, with a word-list version digit and a check digit. A mistyped code or an older cached word list is rejected with a message, never dealt as a wrong card.
+- **QR:** a link `/#j=<code>&n=<names>` that the phone's own camera opens. The app has no camera code (`Permissions-Policy` keeps the camera off). Typing the code works too: «Μπες σε γύρο TV» on the phone home, seats then show as «Θέση N».
+- **Phone (`Join.jsx`):** code → seat → card. The card is `Reveal` with a «Γύρος TV · <name>» bar instead of the dots, and «Νέος γύρος · νέος κωδικός» instead of «Το είδα · Επόμενος». The hold/tap switch is on the seat screen, because players coming from the QR never see the settings.
+- **TV flow (`src/tv/`):** home (the four `tv-home-*` scenes crossfade) → players and settings (the phone screens with `tv` set: no secret vote, no card mode, timer always offered) → lobby (code, QR, a random lit window per seat) → «Κοιτάξτε τις κάρτες σας» (starting player and order) → clue round with the timer, if on → vote out loud and reveal (`TvUnmask`, same rules and words as `Unmask`) → result animation (`TvEnd`: the building lights up for a win, or goes dark except the red window for a loss).
+- **What it can't do:** secret voting, knowing who has joined or looked, or stopping someone from typing another seat number to peek. Accepted for a party game.
+- **Remote control:** real buttons, plus arrow-key spatial navigation (`spatialNav.js`) for TV remotes.
+- **Loading:** the TV code, `tv.css` and the TV pictures load only at `/#tv`. The pictures are left out of the phones' precache and cached by the TV on first use (`runtimeCaching` in `vite.config.js`).
+- **Layout:** sizes are in rem with the root size following the screen (`html.tv`). Overlays on the scenes (lobby windows, result lights) use the window coordinates in `src/tv/windows.js`, inside a 16:9 box that covers the screen.
+
 ## Out of scope for now
 
 - Custom words and categories ("Οι λέξεις μου"). This was dropped for now.

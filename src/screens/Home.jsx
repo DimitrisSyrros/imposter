@@ -1,7 +1,7 @@
 import { Screen } from "../components/Screen.jsx";
 import { Logo } from "../components/Logo.jsx";
 
-export function Home({ onNewGame, onHowTo }) {
+export function Home({ onNewGame, onJoinTv, onHowTo }) {
   return (
     <Screen
       title="Ο Imposter"
@@ -12,6 +12,9 @@ export function Home({ onNewGame, onHowTo }) {
       <div className="grow facade" aria-hidden="true" />
       <div className="stack">
         <button type="button" className="btn" onClick={onNewGame}>Νέο παιχνίδι</button>
+        <button type="button" className="btn ghost" onClick={onJoinTv}>
+          <span aria-hidden="true">📺 </span>Μπες σε γύρο TV
+        </button>
         <button type="button" className="btn ghost" onClick={onHowTo}>Πώς παίζεται</button>
       </div>
     </Screen>
