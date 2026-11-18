@@ -112,6 +112,15 @@ html.tv body { font-size: 1.0625rem; }
 .tv-unmask .stamp { font-size: 1.125rem; }
 .tv-line { font-size: 1.5rem !important; color: var(--app-fg) !important; max-width: 56rem; }
 .tv-line:focus { outline: none; }
+/* «Ψηφίστε φωναχτά»: the three people pointing at each other fill the screen, in place of the facade.
+   Darker at the top behind the title and line, and at the bottom behind the button. */
+.tvs.tv-pointing {
+  background:
+    linear-gradient(#000c, #0007 30%, transparent 45%, transparent 75%, #0009),
+    url("../assets/tv-pointing.webp") center / cover no-repeat,
+    var(--app-bg);
+}
+.tv-pointing .tv-line { text-shadow: 0 0 0.75rem #000, 0 0.125rem 0.25rem #000; } /* over the lit window */
 .tv-word { margin: 0; font-size: 1.25rem; color: var(--app-muted); }
 .tv-word b { font: 400 2rem/1.2 var(--f-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--app-fg); }
 .tv-unmask.is-done { background: #060a0b; padding-top: 1.25rem; }

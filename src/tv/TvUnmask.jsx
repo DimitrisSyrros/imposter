@@ -52,7 +52,7 @@ export function TvUnmask({ players, round, hintMode, onNewRound, onPlayers }) {
 
   return (
     <Screen
-      className={`tvs tv-unmask${done ? " is-done" : ""}`}
+      className={`tvs tv-unmask${done ? " is-done" : ""}${revealed ? "" : " tv-pointing"}`}
       titleClassName="verdict"
       title={
         <>

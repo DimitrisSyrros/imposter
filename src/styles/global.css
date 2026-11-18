@@ -574,3 +574,13 @@ legend { padding: 0; margin-bottom: 0.5rem; }
   .mask, .card, .stamp { rotate: none; }
   .celebrate { display: none; }
 }
+
+/* «Ψηφίστε φωναχτά»: three people pointing at each other on a wet street, filling the space between
+   the text and the button. Decorative (aria-hidden); its edges fade into the page colour. */
+.pointing {
+  flex: 1 0 12rem;
+  margin-inline: calc(-1 * var(--gutter));
+  background: url("../assets/pointing.webp") center 40% / cover no-repeat;
+  -webkit-mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+}

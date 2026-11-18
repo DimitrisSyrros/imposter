@@ -77,7 +77,7 @@ export function Unmask({ players, round, hintMode, onNewRound, onPlayers }) {
 
       {revealed && <RoundFacts round={round} hintMode={hintMode} wordShown={phase === "judge" || phase === "done"} />}
 
-      <div className="grow" />
+      {revealed ? <div className="grow" /> : <div className="pointing" aria-hidden="true" />}
       <div className="stack">
         {phase === "hidden" && (
           <button type="button" className="btn" onClick={() => go("caught")}>
