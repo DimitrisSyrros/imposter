@@ -50,12 +50,29 @@ function loadPlayers() {
     .slice(0, MAX_PLAYERS);
 }
 
+// The screens of a pass-the-phone round. The round in progress is saved, so a phone that reloads
+// the page (screen off, another app for a while) comes back to the same screen.
+export const PLAY_SCREENS = new Set(["pass", "reveal", "clues", "votePass", "vote", "result", "unmask"]);
+export const RESUME_MS = 6 * 60 * 60 * 1000;
+
+function loadPlay(players) {
+  const saved = load("phonePlay", null);
+  if (!saved || typeof saved !== "object" || Date.now() - saved.at > RESUME_MS) return null;
+  const r = saved.round;
+  const ok = PLAY_SCREENS.has(saved.screen) && r && typeof r.word === "string" && Array.isArray(r.imposters)
+    && Array.isArray(r.clues) && Array.isArray(r.votes) && Number.isInteger(r.start) && Number.isInteger(r.revealIndex)
+    && saved.players === players.join("\n") && r.imposters.every((i) => i < players.length);
+  return ok ? { screen: saved.screen, round: r } : null;
+}
+
 export function initState() {
+  const players = loadPlayers();
+  const play = loadPlay(players);
   return {
-    screen: "home",
-    players: loadPlayers(),
+    screen: play?.screen ?? "home",
+    players,
     settings: loadSettings(),
-    round: null,
+    round: play?.round ?? null,
   };
 }
 

@@ -110,7 +110,6 @@ export function CornerCode({ code, round }) {
 function RoundChips({ round, settings }) {
   return (
     <ul className="tv-chips">
-      <li className="now">Γύρος {round.number}</li>
       <li>{round.imposters.length === 1 ? "1 imposter" : `${round.imposters.length} imposters`}</li>
       {settings.timerOn && <li>Χρόνος {formatTime(settings.timerSeconds)}</li>}
     </ul>

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Screen } from "../components/Screen.jsx";
 import { RoundFacts } from "../components/RoundFacts.jsx";
 import { Celebrate } from "../components/Celebrate.jsx";
+import { useSavedState } from "../lib/storage.js";
 import { turnOrder } from "../game/state.js";
 
 // With «Κρυφή ψηφοφορία» off the group gives clues and votes out loud; the phone only reveals.
@@ -9,9 +10,10 @@ import { turnOrder } from "../game/state.js";
 // "guess" → the imposter says a word out loud, caught or not, "judge" → word shown, did they get it?, "done".
 // A caught imposter wins only by finding the word; one who got away wins either way.
 export function Unmask({ players, round, hintMode, onNewRound, onPlayers }) {
-  const [phase, setPhase] = useState("hidden");
-  const [caught, setCaught] = useState(false);
-  const [guessed, setGuessed] = useState(false);
+  const roundId = `${round.number}-${round.word}`;
+  const [phase, setPhase] = useSavedState("unmaskPhase", roundId, "hidden");
+  const [caught, setCaught] = useSavedState("unmaskCaught", roundId, false);
+  const [guessed, setGuessed] = useSavedState("unmaskGuessed", roundId, false);
   const status = useRef(null);
 
   const many = round.imposters.length > 1;

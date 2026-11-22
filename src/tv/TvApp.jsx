@@ -39,7 +39,8 @@ export default function TvApp() {
   }
 
   // From the settings: the same game goes on if nothing that is in the code changed.
-  function deal() {
+  // `fresh`: «Νέο παιχνίδι» at the end of a round, a new code even with the same settings.
+  function deal(fresh = false) {
     const params = {
       categories: settings.categories,
       hintMode: settings.hintMode,
@@ -47,7 +48,7 @@ export default function TvApp() {
       imposters: Math.min(Math.max(1, settings.imposters), maxImposters(players.length)),
     };
     const key = JSON.stringify(params);
-    if (game && round && game.key === key && game.names === players.join("\n")) {
+    if (!fresh && game && round && game.key === key && game.names === players.join("\n")) {
       play(game, round.number + 1);
       go("cards");
       return;
@@ -65,42 +66,55 @@ export default function TvApp() {
     go("cards");
   }
 
-  switch (screen) {
-    case "home":
-      return <TvHome onNewGame={() => go("players")} onHowTo={() => go("howto")} />;
-    case "howto":
-      return <TvHowTo onBack={() => go("home")} onNewGame={() => go("players")} />;
-    case "players":
-      return (
-        <div className="tv-column">
-          <Players tv players={players} imposters={settings.imposters} dispatch={dispatch} onBack={() => go("home")} onNext={() => go("settings")} />
-        </div>
-      );
-    case "settings":
-      return (
-        <div className="tv-column">
-          <Settings tv settings={settings} dispatch={dispatch} onBack={() => go("players")} onDeal={deal} />
-        </div>
-      );
-    case "lobby":
-      return <TvLobby key={code} players={players} round={round} code={code} onReady={() => go("cards")} onSettings={() => go("settings")} />;
-    case "cards":
-      return <TvCards key={`${code}-${round.number}`} players={players} round={round} settings={settings} code={code} onGo={() => go(settings.timerOn ? "clues" : "unmask")} />;
-    case "clues":
-      return <TvClues key={`${code}-${round.number}`} players={players} round={round} settings={settings} code={code} onVote={() => go("unmask")} />;
-    case "unmask":
-      return (
-        <TvUnmask
-          key={`${code}-${round.number}`}
-          players={players}
-          round={round}
-          code={code}
-          hintMode={settings.hintMode}
-          onNewRound={nextRound}
-          onPlayers={() => go("players")}
-        />
-      );
-    default:
-      return null;
+  const view = render();
+  // During a round, a small «Γύρος N» in the top-right corner of every screen, so the room can check
+  // it against the «Γύρος N» on the phones.
+  return ROUND_SCREENS.has(screen) && round ? (
+    <>
+      {view}
+      <aside className="tv-round-badge" aria-label="Γύρος">Γύρος <b>{round.number}</b></aside>
+    </>
+  ) : view;
+
+  function render() {
+    switch (screen) {
+      case "home":
+        return <TvHome onNewGame={() => go("players")} onHowTo={() => go("howto")} />;
+      case "howto":
+        return <TvHowTo onBack={() => go("home")} onNewGame={() => go("players")} />;
+      case "players":
+        return (
+          <div className="tv-column">
+            <Players tv players={players} imposters={settings.imposters} dispatch={dispatch} onBack={() => go("home")} onNext={() => go("settings")} />
+          </div>
+        );
+      case "settings":
+        return (
+          <div className="tv-column">
+            <Settings tv settings={settings} dispatch={dispatch} onBack={() => go("players")} onDeal={() => deal()} />
+          </div>
+        );
+      case "lobby":
+        return <TvLobby key={code} players={players} round={round} code={code} onReady={() => go("cards")} onSettings={() => go("settings")} />;
+      case "cards":
+        return <TvCards key={`${code}-${round.number}`} players={players} round={round} settings={settings} code={code} onGo={() => go(settings.timerOn ? "clues" : "unmask")} />;
+      case "clues":
+        return <TvClues key={`${code}-${round.number}`} players={players} round={round} settings={settings} code={code} onVote={() => go("unmask")} />;
+      case "unmask":
+        return (
+          <TvUnmask
+            key={`${code}-${round.number}`}
+            players={players}
+            round={round}
+            code={code}
+            hintMode={settings.hintMode}
+            onNewRound={nextRound}
+          onNewGame={() => deal(true)}
+            onPlayers={() => go("players")}
+          />
+        );
+      default:
+        return null;
+    }
   }
 }

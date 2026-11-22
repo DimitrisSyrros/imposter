@@ -119,19 +119,27 @@ function loadSaved() {
 // `link`: { code, round, names } from a scanned QR, or null.
 export function Join({ link, revealMode, onRevealMode, onHome }) {
   const tapId = useId();
-  const fromLink = link?.code ? decodeGame(link.code) : null;
-  const [saved] = useState(() => (link ? null : loadSaved()));
-  const [code, setCode] = useState(link?.code ? formatCode(link.code) : saved ? formatCode(saved.game.code) : "");
+  const fromLinkRaw = link?.code ? decodeGame(link.code) : null;
+  // Reopening the app (or the browser reloading the QR link after the screen was off) goes back to the
+  // saved card, unless the link is for another game.
+  const [saved] = useState(() => {
+    const s = loadSaved();
+    if (!s || (link && link.code !== s.game.code)) return null;
+    return { ...s, round: Math.max(s.round, link?.round ?? 1) };
+  });
+  const fromLink = saved ? null : fromLinkRaw;
+  const [code, setCode] = useState(saved ? formatCode(saved.game.code) : link?.code ? formatCode(link.code) : "");
   const [game, setGame] = useState(fromLink?.ok ? fromLink.game : saved?.game ?? null);
   const [roundNo, setRoundNo] = useState(fromLink?.ok ? Math.min(MAX_ROUND, link.round) : saved?.round ?? 1);
   const [error, setError] = useState(fromLink && !fromLink.ok ? fromLink.error : "");
   // Names come only with the QR link, and only when they match the game's seats.
   const linkNames = link?.names && fromLink?.ok && link.names.length === fromLink.game.players ? link.names : null;
-  const [names, setNames] = useState(linkNames ?? saved?.names ?? null);
+  const [names, setNames] = useState(saved?.names ?? linkNames);
   const [seat, setSeat] = useState(saved?.seat ?? null);
   const [armed, setArmed] = useState(null); // tap mode: the window tapped once, waiting for a second tap
   const [phase, setPhase] = useState(fromLink?.ok ? "seat" : saved ? "card" : "code");
   const [loading, setLoading] = useState(false);
+  const [pickRound, setPickRound] = useState(1); // the round chooser's value before it is confirmed
   const inputId = useId();
   const errorId = useId();
   const helpId = useId();
@@ -201,7 +209,7 @@ export function Join({ link, revealMode, onRevealMode, onHome }) {
         revealMode={revealMode}
         header={
           <div className="bar">
-            <span>Γύρος {roundNo}</span>
+            <span className="round-pill">Γύρος <b>{roundNo}</b></span>
             <span>{seatName(seat)}</span>
           </div>
         }
@@ -222,12 +230,40 @@ export function Join({ link, revealMode, onRevealMode, onHome }) {
                 "Επόμενος γύρος"
               )}
             </button>
-            <button type="button" className="link center-link" onClick={() => setPhase("seat")}>
-              Αλλαγή θέσης ή γύρου
+            {/* well apart from «Επόμενος γύρος», so one can't be pressed for the other */}
+            <button type="button" className="btn ghost lost" onClick={() => { setPickRound(roundNo); setPhase("round"); }}>
+              Μπερδεύτηκα · Διάλεξε γύρο
             </button>
           </div>
         }
       />
+    );
+  }
+
+  // Back into the game after falling out of step: pick the round the TV shows, then the card.
+  if (phase === "round") {
+    return (
+      <Screen title="Σε ποιον γύρο είστε;" before={<Bar onBack={() => setPhase("card")} step="TV" />}>
+        <p className="sub">Δες τον γύρο πάνω δεξιά στην TV και διάλεξε τον ίδιο εδώ.</p>
+        <Stepper
+          label="Γύρος"
+          value={pickRound}
+          min={1}
+          max={MAX_ROUND}
+          onChange={setPickRound}
+          decLabel="Προηγούμενος γύρος"
+          incLabel="Επόμενος γύρος"
+        />
+        <div className="grow" />
+        <div className="stack">
+          <button type="button" className="btn" onClick={() => { setRoundNo(pickRound); setPhase("card"); }}>
+            Πίσω στο παιχνίδι · Γύρος {pickRound}
+          </button>
+          <button type="button" className="link center-link" onClick={() => setPhase("seat")}>
+            Λάθος θέση; Άλλαξέ τη
+          </button>
+        </div>
+      </Screen>
     );
   }
 

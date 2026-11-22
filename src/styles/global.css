@@ -536,6 +536,14 @@ legend { padding: 0; margin-bottom: 0.5rem; }
 .seat.armed { box-shadow: 0 0 0 7px var(--app-line), 0 0 0 9px var(--sun), 0 0 30px #f2b44599; }
 .seat.armed .was { color: var(--sun-hi); }
 @media (prefers-reduced-motion: reduce) { .seat { transition: none; } .seat.holding { transform: none; } }
+/* TV game on the phone: the round in the top bar, as on the TV, and the "I'm lost" button set well apart */
+.round-pill {
+  padding: 0.25rem 0.75rem; border-radius: 2rem; color: var(--app-fg); letter-spacing: 0.16em;
+  background: #060a0bd9; box-shadow: inset 0 0 0 1px var(--gold);
+}
+.round-pill b { color: var(--gold); font-size: 1.125rem; letter-spacing: 0.04em; }
+.btn.lost { margin-top: 2rem; min-height: 2.75rem; font-size: 0.875rem; }
+
 /* «Επόμενος γύρος» while it waits: locked, with a spinner and the round it is moving to */
 .btn.is-loading { display: inline-flex; align-items: center; justify-content: center; gap: 0.625rem; cursor: progress; }
 .spinner {

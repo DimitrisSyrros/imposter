@@ -7,7 +7,7 @@ import { CornerCode } from "./TvScreens.jsx";
 // The group votes out loud; the TV reveals. Same rules and words as Unmask.jsx on the phone:
 // "hidden" → "caught" (did you catch them?) → "guess" (they say a word out loud) → "judge" (word shown) → "done".
 // A caught imposter wins only by finding the word; one who got away wins either way.
-export function TvUnmask({ players, round, code, hintMode, onNewRound, onPlayers }) {
+export function TvUnmask({ players, round, code, hintMode, onNewRound, onNewGame, onPlayers }) {
   const [phase, setPhase] = useState("hidden");
   const [caught, setCaught] = useState(false);
   const [guessed, setGuessed] = useState(false);
@@ -96,7 +96,11 @@ export function TvUnmask({ players, round, code, hintMode, onNewRound, onPlayers
         {done && (
           <>
             <button type="button" className="btn" onClick={onNewRound}>Νέος γύρος</button>
-            <button type="button" className="btn ghost" onClick={onPlayers}>Αλλαγή παικτών</button>
+            {/* a new code: everyone joins again */}
+            <div className="tv-flank-side">
+              <button type="button" className="btn ghost" onClick={onNewGame}>Νέο παιχνίδι</button>
+              <button type="button" className="btn ghost" onClick={onPlayers}>Αλλαγή παικτών</button>
+            </div>
           </>
         )}
       </div>

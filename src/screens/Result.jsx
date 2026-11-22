@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Screen } from "../components/Screen.jsx";
 import { RoundFacts } from "../components/RoundFacts.jsx";
 import { Celebrate } from "../components/Celebrate.jsx";
+import { useSavedState } from "../lib/storage.js";
 import { verdict } from "../game/state.js";
 
 // Screen 9. Caught or not, the word stays hidden until the imposter has said their guess out loud;
@@ -11,8 +12,9 @@ export function Result({ players, round, hintMode, onNewRound, onPlayers }) {
   const { counts, top, caught } = verdict(players.length, round);
   // "guess" → waiting for the caught imposter's guess, "judge" → word shown, did they get it?
   // "done" → final.
-  const [phase, setPhase] = useState("guess");
-  const [guessed, setGuessed] = useState(false);
+  const roundId = `${round.number}-${round.word}`;
+  const [phase, setPhase] = useSavedState("resultPhase", roundId, "guess");
+  const [guessed, setGuessed] = useSavedState("resultGuessed", roundId, false);
   const outcome = useRef(null);
 
   const many = round.imposters.length > 1;

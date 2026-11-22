@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useState } from "react";
-import { save } from "./lib/storage.js";
+import { remove, save } from "./lib/storage.js";
 import { useWakeLock } from "./lib/useWakeLock.js";
-import { createRound, initState, reducer, turnOrder } from "./game/state.js";
+import { createRound, initState, PLAY_SCREENS, reducer, turnOrder } from "./game/state.js";
 import { Home } from "./screens/Home.jsx";
 import { Players } from "./screens/Players.jsx";
 import { Settings } from "./screens/Settings.jsx";
@@ -29,7 +29,10 @@ const REVEAL_NOTE = {
 export default function App() {
   // A QR from the TV opens the site at #j=<code>&n=<names>.
   const [link, setLink] = useState(() => readJoinHash(location.hash));
-  const [state, dispatch] = useReducer(reducer, undefined, () => ({ ...initState(), screen: link ? "join" : "home" }));
+  const [state, dispatch] = useReducer(reducer, undefined, () => {
+    const init = initState(); // may come back to a round in progress
+    return link ? { ...init, screen: "join" } : init;
+  });
   const { screen, players, settings, round } = state;
   const go = (screen) => dispatch({ type: "go", screen });
 
@@ -56,6 +59,11 @@ export default function App() {
 
   useEffect(() => save("players", players), [players]);
   useEffect(() => save("settings", settings), [settings]);
+  // Keep the round in progress, so a reload (screen off, another app) comes back to the same screen.
+  useEffect(() => {
+    if (PLAY_SCREENS.has(screen) && round) save("phonePlay", { screen, round, players: players.join("\n"), at: Date.now() });
+    else if (screen !== "howto") remove("phonePlay");
+  }, [screen, round, players]);
   useWakeLock(ROUND_SCREENS.has(screen));
 
   switch (screen) {
