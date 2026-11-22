@@ -1,10 +1,10 @@
 import { useEffect, useReducer, useState } from "react";
-import { save } from "../lib/storage.js";
+import { load, save } from "../lib/storage.js";
 import { useWakeLock } from "../lib/useWakeLock.js";
-import { createRound, initState, reducer } from "../game/state.js";
+import { initState, maxImposters, reducer } from "../game/state.js";
 import { Players } from "../screens/Players.jsx";
 import { Settings } from "../screens/Settings.jsx";
-import { encodeRound, wordIndex } from "./code.js";
+import { decodeGame, encodeGame, gameRound, isDeckPlace, randomDeckPlace } from "./code.js";
 import { TvCards, TvClues, TvHome, TvHowTo, TvLobby } from "./TvScreens.jsx";
 import { TvUnmask } from "./TvUnmask.jsx";
 import { enableSpatialNav } from "./spatialNav.js";
@@ -14,12 +14,15 @@ const ROUND_SCREENS = new Set(["lobby", "cards", "clues", "unmask"]);
 
 // The big-screen version, opened at /#tv. The TV holds the players, settings and used words,
 // deals each round and shows its code; the phones only show their own card (Join.jsx).
-// Flow: home → players → settings → lobby (code + QR) → cards → clues (timer on) → unmask → new round
+// Flow: home → players → settings → lobby (code + QR, once per game) → cards → clues (timer on) → unmask
+//   → next round: straight to cards; the phones tap «Επόμενος γύρος» and work out the same round.
+// A game lasts until the players, categories, hint mode or imposter count change.
 export default function TvApp() {
   const [state, dispatch] = useReducer(reducer, undefined, initState);
   const { screen, players, settings } = state;
+  const [game, setGame] = useState(null); // { code, key, names, decoded }
   const [round, setRound] = useState(null);
-  const [code, setCode] = useState("");
+  const code = game?.code ?? "";
   const go = (screen) => dispatch({ type: "go", screen });
 
   useEffect(() => save("players", players), [players]);
@@ -27,11 +30,39 @@ export default function TvApp() {
   useEffect(() => enableSpatialNav(), []);
   useWakeLock(ROUND_SCREENS.has(screen));
 
-  function deal(number = 1) {
-    const r = createRound(players, settings, number);
-    setRound(r);
-    setCode(encodeRound({ wordIndex: wordIndex(r), hintMode: settings.hintMode, players: players.length, imposters: r.imposters }));
+  // Deals round r of a game and moves the TV's place in the word deck past its word,
+  // so the next game (even another evening) goes on with new words.
+  function play(g, r) {
+    const next = gameRound(g.decoded, r);
+    setRound(next);
+    save("tvDeck", next.after);
+  }
+
+  // From the settings: the same game goes on if nothing that is in the code changed.
+  function deal() {
+    const params = {
+      categories: settings.categories,
+      hintMode: settings.hintMode,
+      players: players.length,
+      imposters: Math.min(Math.max(1, settings.imposters), maxImposters(players.length)),
+    };
+    const key = JSON.stringify(params);
+    if (game && round && game.key === key && game.names === players.join("\n")) {
+      play(game, round.number + 1);
+      go("cards");
+      return;
+    }
+    const saved = load("tvDeck", null);
+    const newCode = encodeGame({ ...params, start: isDeckPlace(saved) ? saved : randomDeckPlace() });
+    const g = { code: newCode, key, names: players.join("\n"), decoded: decodeGame(newCode).game };
+    setGame(g);
+    play(g, 1);
     go("lobby");
+  }
+
+  function nextRound() {
+    play(game, round.number + 1);
+    go("cards");
   }
 
   switch (screen) {
@@ -48,24 +79,24 @@ export default function TvApp() {
     case "settings":
       return (
         <div className="tv-column">
-          <Settings tv settings={settings} dispatch={dispatch} onBack={() => go("players")} onDeal={() => deal(round ? round.number + 1 : 1)} />
+          <Settings tv settings={settings} dispatch={dispatch} onBack={() => go("players")} onDeal={deal} />
         </div>
       );
     case "lobby":
       return <TvLobby key={code} players={players} round={round} code={code} onReady={() => go("cards")} onSettings={() => go("settings")} />;
     case "cards":
-      return <TvCards players={players} round={round} settings={settings} code={code} onGo={() => go(settings.timerOn ? "clues" : "unmask")} />;
+      return <TvCards key={`${code}-${round.number}`} players={players} round={round} settings={settings} code={code} onGo={() => go(settings.timerOn ? "clues" : "unmask")} />;
     case "clues":
-      return <TvClues key={code} players={players} round={round} settings={settings} code={code} onVote={() => go("unmask")} />;
+      return <TvClues key={`${code}-${round.number}`} players={players} round={round} settings={settings} code={code} onVote={() => go("unmask")} />;
     case "unmask":
       return (
         <TvUnmask
-          key={code}
+          key={`${code}-${round.number}`}
           players={players}
           round={round}
           code={code}
           hintMode={settings.hintMode}
-          onNewRound={() => deal(round.number + 1)}
+          onNewRound={nextRound}
           onPlayers={() => go("players")}
         />
       );

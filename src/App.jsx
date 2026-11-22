@@ -64,7 +64,7 @@ export default function App() {
     case "join":
       return (
         <Join
-          key={link ? `${link.code}-${link.names?.join()}` : "typed"}
+          key={link ? `${link.code}-${link.round}-${link.names?.join()}` : "typed"}
           link={link}
           revealMode={settings.revealMode}
           onRevealMode={(v) => dispatch({ type: "updateSettings", patch: { revealMode: v } })}

@@ -536,6 +536,13 @@ legend { padding: 0; margin-bottom: 0.5rem; }
 .seat.armed { box-shadow: 0 0 0 7px var(--app-line), 0 0 0 9px var(--sun), 0 0 30px #f2b44599; }
 .seat.armed .was { color: var(--sun-hi); }
 @media (prefers-reduced-motion: reduce) { .seat { transition: none; } .seat.holding { transform: none; } }
+/* «Επόμενος γύρος» while it waits: locked, with a spinner and the round it is moving to */
+.btn.is-loading { display: inline-flex; align-items: center; justify-content: center; gap: 0.625rem; cursor: progress; }
+.spinner {
+  width: 1.125rem; height: 1.125rem; flex: none; border-radius: 50%;
+  border: 3px solid currentColor; border-right-color: transparent; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 .center-link { align-self: center; margin-left: 0; }
 
 /* End-of-round animation (Celebrate.jsx): plays once over the screen, never takes a tap. */
@@ -594,6 +601,7 @@ legend { padding: 0; margin-bottom: 0.5rem; }
   .celebrate { display: none; }
   /* the seat hold bar is a timer, not decoration: it keeps its real length */
   .seat.holding .hold-bar i { animation-duration: var(--hold) !important; }
+  .spinner { animation: none; border-right-color: currentColor; border-style: dotted; }
 }
 
 /* «Ψηφίστε φωναχτά»: three people pointing at each other on a wet street, filling the space between

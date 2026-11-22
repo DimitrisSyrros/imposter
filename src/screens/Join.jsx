@@ -1,8 +1,9 @@
-import { useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Screen } from "../components/Screen.jsx";
 import { Bar } from "../components/Bar.jsx";
 import { Reveal } from "./Reveal.jsx";
-import { decodeRound, formatCode } from "../tv/code.js";
+import { Stepper } from "../components/Stepper.jsx";
+import { decodeGame, formatCode, gameRound } from "../tv/code.js";
 import { load, save } from "../lib/storage.js";
 
 // src/assets/windows-lit.webp: every lit window of the TV scenes, 8 per row (made by scripts/window-sprite.mjs)
@@ -93,49 +94,84 @@ function SeatTile({ index, name, last, style, tapMode, armed, onArm, onPick }) {
 }
 
 const ERRORS = {
-  length: "Ο κωδικός έχει 9 ψηφία.",
+  length: "Ο κωδικός έχει 11 ψηφία.",
   check: "Ο κωδικός δεν είναι σωστός. Έλεγξε τα ψηφία στην TV.",
   version: "Η TV και αυτό το κινητό έχουν διαφορετική λίστα λέξεων. Ανανέωσε τη σελίδα και στα δύο.",
 };
 
-// Playing with a TV: the phone gets its card from the round code on the TV (typed, or from the QR link)
-// and never talks to anything. "code" → "seat" (who are you?) → "card".
-// `link`: { code, names } from a scanned QR, or null.
+const MAX_ROUND = 99;
+const NEXT_DELAY_MS = 1200; // «Επόμενος γύρος» stays locked this long, so a double tap can't skip a round
+const RESUME_MS = 6 * 60 * 60 * 1000; // reopening the app within 6 hours goes back to the same game
+
+// The game this phone is in, kept so a reload or a locked phone doesn't lose the seat and round.
+function loadSaved() {
+  const s = load("tvGame", null);
+  if (!s || typeof s !== "object" || Date.now() - s.at > RESUME_MS) return null;
+  const d = decodeGame(s.code);
+  if (!d.ok || !Number.isInteger(s.seat) || s.seat < 0 || s.seat >= d.game.players) return null;
+  const names = Array.isArray(s.names) && s.names.length === d.game.players ? s.names : null;
+  return { game: d.game, seat: s.seat, round: Math.min(MAX_ROUND, Math.max(1, Math.floor(s.round) || 1)), names };
+}
+
+// Playing with a TV: the phone works out every card from the game code on the TV (typed once, or from
+// the QR link) and never talks to anything. "code" → "seat" (who are you? which round?) → "card",
+// then «Επόμενος γύρος» for each new round, with no new code.
+// `link`: { code, round, names } from a scanned QR, or null.
 export function Join({ link, revealMode, onRevealMode, onHome }) {
   const tapId = useId();
-  const fromLink = link?.code ? decodeRound(link.code) : null;
-  const [code, setCode] = useState(link?.code ? formatCode(link.code) : "");
-  const [round, setRound] = useState(fromLink?.ok ? fromLink.round : null);
+  const fromLink = link?.code ? decodeGame(link.code) : null;
+  const [saved] = useState(() => (link ? null : loadSaved()));
+  const [code, setCode] = useState(link?.code ? formatCode(link.code) : saved ? formatCode(saved.game.code) : "");
+  const [game, setGame] = useState(fromLink?.ok ? fromLink.game : saved?.game ?? null);
+  const [roundNo, setRoundNo] = useState(fromLink?.ok ? Math.min(MAX_ROUND, link.round) : saved?.round ?? 1);
   const [error, setError] = useState(fromLink && !fromLink.ok ? fromLink.error : "");
-  // Names come only with the QR link, and only when they match the round's seats.
-  const linkNames = link?.names && fromLink?.ok && link.names.length === fromLink.round.players ? link.names : null;
-  const [names, setNames] = useState(linkNames);
-  const [seat, setSeat] = useState(null);
+  // Names come only with the QR link, and only when they match the game's seats.
+  const linkNames = link?.names && fromLink?.ok && link.names.length === fromLink.game.players ? link.names : null;
+  const [names, setNames] = useState(linkNames ?? saved?.names ?? null);
+  const [seat, setSeat] = useState(saved?.seat ?? null);
   const [armed, setArmed] = useState(null); // tap mode: the window tapped once, waiting for a second tap
-  const [phase, setPhase] = useState(fromLink?.ok ? "seat" : "code");
+  const [phase, setPhase] = useState(fromLink?.ok ? "seat" : saved ? "card" : "code");
+  const [loading, setLoading] = useState(false);
   const inputId = useId();
   const errorId = useId();
   const helpId = useId();
   const input = useRef(null);
   useState(() => linkNames && save("tvNames", linkNames)); // once per link (Join is keyed by it)
 
-  const windows = useMemo(() => (round ? randomWindows(round.players) : []), [round]);
+  const round = useMemo(() => (game ? gameRound(game, roundNo) : null), [game, roundNo]);
+  const windows = useMemo(() => (game ? randomWindows(game.players) : []), [game]);
   const seatName = (i) => (names ? names[i] : `Θέση ${i + 1}`);
+
+  // Keep the place in the game while a card is on screen.
+  useEffect(() => {
+    if (phase === "card" && game) save("tvGame", { code: game.code, seat, round: roundNo, names, at: Date.now() });
+  }, [phase, game, seat, roundNo, names]);
+
+  // «Επόμενος γύρος»: locked with a spinner for a moment, then the next card.
+  useEffect(() => {
+    if (!loading) return;
+    const t = setTimeout(() => {
+      setRoundNo((r) => Math.min(MAX_ROUND, r + 1));
+      setLoading(false);
+    }, NEXT_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [loading]);
 
   function submit(e) {
     e.preventDefault();
-    const r = decodeRound(code);
+    const r = decodeGame(code);
     if (!r.ok) {
       setError(r.error);
       input.current?.focus();
       return;
     }
     setError("");
-    setRound(r.round);
-    // A typed code carries no names: reuse the ones from this phone's last QR round if the seat count matches.
+    if (game?.code !== r.game.code) setRoundNo(1);
+    setGame(r.game);
+    // A typed code carries no names: reuse the ones from this phone's last QR game if the seat count matches.
     // The seat number stays on each tile, so it can be checked against the TV's plates.
     const last = load("tvNames", null);
-    setNames(Array.isArray(last) && last.length === r.round.players ? last : null);
+    setNames(Array.isArray(last) && last.length === r.game.players ? last : null);
     setPhase("seat");
   }
 
@@ -147,31 +183,47 @@ export function Join({ link, revealMode, onRevealMode, onHome }) {
   }
 
   function newCode() {
+    try { localStorage.removeItem("tvGame"); } catch {}
     setCode("");
-    setRound(null);
+    setGame(null);
     setSeat(null);
+    setRoundNo(1);
     setPhase("code");
   }
 
   if (phase === "card") {
     return (
       <Reveal
-        key={`tv-${code}-${seat}`}
+        key={`tv-${game.code}-${seat}-${roundNo}`}
         round={round}
         isImposter={round.imposters.includes(seat)}
         hintMode={round.hintMode}
         revealMode={revealMode}
         header={
           <div className="bar">
-            <span>Γύρος TV</span>
+            <span>Γύρος {roundNo}</span>
             <span>{seatName(seat)}</span>
           </div>
         }
         actions={
           <div className="stack">
-            <button type="button" className="btn ghost" onClick={newCode}>Νέος γύρος · νέος κωδικός</button>
+            <button
+              type="button"
+              className={`btn ghost${loading ? " is-loading" : ""}`}
+              aria-disabled={loading || roundNo >= MAX_ROUND ? "true" : undefined}
+              onClick={() => !loading && roundNo < MAX_ROUND && setLoading(true)}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner" aria-hidden="true" />
+                  <span role="status">Γύρος {roundNo + 1}…</span>
+                </>
+              ) : (
+                "Επόμενος γύρος"
+              )}
+            </button>
             <button type="button" className="link center-link" onClick={() => setPhase("seat")}>
-              Δεν είμαι η/ο {seatName(seat)}
+              Αλλαγή θέσης ή γύρου
             </button>
           </div>
         }
@@ -189,8 +241,17 @@ export function Join({ link, revealMode, onRevealMode, onHome }) {
           {revealMode === "tap" ? " και πάτα το δύο φορές." : " και κράτα το πατημένο μέχρι να γεμίσει η μπάρα."}
           {names && " Ο αριθμός είναι ίδιος με της TV."} Μετά, μην δείξεις την οθόνη σε κανέναν.
         </p>
+        <Stepper
+          label="Γύρος, όπως στην TV"
+          value={roundNo}
+          min={1}
+          max={MAX_ROUND}
+          onChange={setRoundNo}
+          decLabel="Προηγούμενος γύρος"
+          incLabel="Επόμενος γύρος"
+        />
         <ul className="seats">
-          {Array.from({ length: round.players }, (_, i) => (
+          {Array.from({ length: game.players }, (_, i) => (
             <li key={i}>
               <SeatTile
                 index={i}
@@ -230,10 +291,10 @@ export function Join({ link, revealMode, onRevealMode, onHome }) {
   return (
     <Screen title="Μπες σε γύρο TV" before={<Bar onBack={onHome} />}>
       <p className="sub" id={helpId}>
-        Σκάναρε το QR της TV με την κάμερα του κινητού, ή γράψε εδώ τον κωδικό που δείχνει.
+        Σκάναρε το QR της TV με την κάμερα του κινητού, ή γράψε εδώ τον κωδικό που δείχνει. Τον γράφεις μία φορά για όλο το παιχνίδι.
       </p>
       <form className="join" onSubmit={submit} noValidate>
-        <label htmlFor={inputId} className="label">Κωδικός γύρου</label>
+        <label htmlFor={inputId} className="label">Κωδικός παιχνιδιού</label>
         <input
           ref={input}
           id={inputId}
@@ -242,12 +303,12 @@ export function Join({ link, revealMode, onRevealMode, onHome }) {
           inputMode="numeric"
           autoComplete="one-time-code"
           enterKeyHint="go"
-          placeholder="000 000 000"
-          maxLength={11}
+          placeholder="000 0000 0000"
+          maxLength={13}
           aria-describedby={error ? `${errorId} ${helpId}` : helpId}
           aria-invalid={error ? "true" : undefined}
           onChange={(e) => {
-            setCode(formatCode(e.target.value.replace(/\D/g, "").slice(0, 9)));
+            setCode(formatCode(e.target.value.replace(/\D/g, "").slice(0, 11)));
             if (error) setError("");
           }}
         />

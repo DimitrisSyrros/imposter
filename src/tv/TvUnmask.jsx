@@ -100,7 +100,7 @@ export function TvUnmask({ players, round, code, hintMode, onNewRound, onPlayers
           </>
         )}
       </div>
-      {!revealed && <CornerCode code={code} />}
+      {!revealed && <CornerCode code={code} round={round.number} />}
     </Screen>
   );
 }

@@ -34,7 +34,7 @@ export function TvHowTo({ onBack, onNewGame }) {
     <Screen className="tvs tv-text" title="Πώς παίζεται με TV" before={<div className="tv-redline" />}>
       <ol className="steps">
         <li>Γράψτε τα ονόματα και διαλέξτε κατηγορίες εδώ, στην TV.</li>
-        <li>Η TV δείχνει ένα QR και έναν κωδικό. Ο καθένας τον <b>σκανάρει με την κάμερα του κινητού του</b> (ή πατά «Μπες σε γύρο TV» και γράφει τον κωδικό) και διαλέγει το όνομά του.</li>
+        <li>Η TV δείχνει ένα QR και έναν κωδικό. Ο καθένας τον <b>σκανάρει με την κάμερα του κινητού του</b> (ή πατά «Μπες σε γύρο TV» και γράφει τον κωδικό) και διαλέγει το όνομά του. Αυτό γίνεται μία φορά: στους επόμενους γύρους πατάτε «Επόμενος γύρος» στο κινητό.</li>
         <li>Κρατήστε πατημένη την κάρτα στο κινητό. Όλοι βλέπουν τη λέξη, εκτός από τον Imposter, που βλέπει μόνο ένα στοιχείο.</li>
         <li>Με τη σειρά που δείχνει η TV, ο καθένας λέει μία λέξη-στοιχείο. Μετά ψηφίστε φωναχτά.</li>
         <li>Η TV αποκαλύπτει τον Imposter. Αν τον πιάσατε, έχει μία ευκαιρία να βρει τη λέξη και να κλέψει τη νίκη.</li>
@@ -69,17 +69,18 @@ function SeatWindows({ players, roundNumber, highlight }) {
 
 // Step 1 of a round: the code and QR. Each phone works out its own card from them.
 export function TvLobby({ players, round, code, onReady, onSettings }) {
-  const link = joinLink(code, players);
+  const link = joinLink(code, players, round.number);
   return (
-    <Screen className="tvs tv-lobby" title="Νέος γύρος" before={<div className="tv-redline" />}>
+    <Screen className="tvs tv-lobby" title="Νέο παιχνίδι" before={<div className="tv-redline" />}>
       <div className="tv-two">
         <div className="tv-code">
-          <p className="label">Κωδικός γύρου</p>
+          <p className="label">Κωδικός παιχνιδιού</p>
           <p className="tv-bigcode" aria-label={`Κωδικός: ${code.split("").join(" ")}`}>{formatCode(code)}</p>
           <div className="tv-qrrow">
-            <Qr text={link} label="QR για να μπεις στον γύρο" />
+            <Qr text={link} label="QR για να μπεις στο παιχνίδι" />
             <p className="sub">
               Σκάναρε με την κάμερα του κινητού. Ή πάτα «Μπες σε γύρο TV» στο <b>{location.host}</b> και γράψε τον κωδικό.
+              Μία φορά για όλο το παιχνίδι: στους επόμενους γύρους πατάτε «Επόμενος γύρος» στο κινητό.
             </p>
           </div>
         </div>
@@ -95,11 +96,12 @@ export function TvLobby({ players, round, code, onReady, onSettings }) {
 
 // The round code in the bottom-right corner of the screens after the lobby, so someone who missed
 // the QR (or whose phone went wrong) can still join before the imposter is revealed.
-export function CornerCode({ code }) {
+export function CornerCode({ code, round }) {
   return (
-    <aside className="tv-corner" aria-label="Κωδικός γύρου">
+    <aside className="tv-corner" aria-label="Κωδικός παιχνιδιού">
       <span className="hint">Έχασες την κάρτα σου; <b>{location.host}</b> · «Μπες σε γύρο TV»</span>
       <span className="code" aria-label={code.split("").join(" ")}>{formatCode(code)}</span>
+      <span className="round">Γύρος <b>{round}</b></span>
     </aside>
   );
 }
@@ -108,6 +110,7 @@ export function CornerCode({ code }) {
 function RoundChips({ round, settings }) {
   return (
     <ul className="tv-chips">
+      <li className="now">Γύρος {round.number}</li>
       <li>{round.imposters.length === 1 ? "1 imposter" : `${round.imposters.length} imposters`}</li>
       {settings.timerOn && <li>Χρόνος {formatTime(settings.timerSeconds)}</li>}
     </ul>
@@ -133,13 +136,17 @@ function Order({ players, round, current = -1 }) {
 export function TvCards({ players, round, settings, code, onGo }) {
   const first = players[round.start];
   const timed = settings.timerOn;
+  const later = round.number > 1;
+  const look = later
+    ? `Πατήστε «Επόμενος γύρος» στο κινητό και δείτε ότι γράφει «Γύρος ${round.number}». Μην δείξετε την κάρτα σε κανέναν.`
+    : "Δείτε την κάρτα σας στο κινητό και μην τη δείξετε σε κανέναν.";
   return (
     <Screen className="tvs tv-cards has-corner" title={timed ? "Κοιτάξτε τις κάρτες σας" : "Κάρτες και στοιχεία"} before={<div className="tv-redline" />}>
       {timed ? (
-        <p className="sub">Δείτε την κάρτα σας στο κινητό και μην τη δείξετε σε κανέναν. Όταν όλοι είναι έτοιμοι, ξεκινά ο γύρος στοιχείων με χρόνο.</p>
+        <p className="sub">{look} Όταν όλοι είναι έτοιμοι, ξεκινά ο γύρος στοιχείων με χρόνο.</p>
       ) : (
         <ol className="sub tv-steps">
-          <li>Δείτε την κάρτα σας στο κινητό και μην τη δείξετε σε κανέναν.</li>
+          <li>{look}</li>
           <li>Με τη σειρά από κάτω, ο καθένας λέει δυνατά μία λέξη-στοιχείο.</li>
         </ol>
       )}
@@ -151,7 +158,7 @@ export function TvCards({ players, round, settings, code, onGo }) {
       <div className="tv-row end">
         <button type="button" className="btn" onClick={onGo}>{timed ? "Όλοι είδαν · Στα στοιχεία" : "Όλοι είπαν · Στην ψηφοφορία"}</button>
       </div>
-      <CornerCode code={code} />
+      <CornerCode code={code} round={round.number} />
     </Screen>
   );
 }
@@ -206,7 +213,7 @@ export function TvClues({ players, round, settings, code, onVote }) {
         </div>
       </div>
       <p className="visually-hidden" aria-live="polite">{message}</p>
-      <CornerCode code={code} />
+      <CornerCode code={code} round={round.number} />
     </Screen>
   );
 }
