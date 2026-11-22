@@ -26,12 +26,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"],
-        // The TV pictures (about 560 KB) are not precached on every phone: the TV caches them
+        // The TV pictures (about 690 KB) are not precached on every phone: the TV caches them
         // the first time it shows them, and then works offline like the rest of the app.
-        globIgnores: ["**/tv-home-*.webp", "**/facade-night-tv-*.webp", "**/tv-pointing-*.webp"],
+        globIgnores: ["**/tv-home-*.webp", "**/facade-night-tv-*.webp", "**/tv-pointing-*.webp", "**/tv-cards-*.webp"],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => /\/assets\/(tv-home-\d|facade-night-tv|tv-pointing)-[^/]+\.webp$/.test(url.pathname),
+            urlPattern: ({ url }) => /\/assets\/(tv-home-\d|facade-night-tv|tv-pointing|tv-cards)-[^/]+\.webp$/.test(url.pathname),
             handler: "CacheFirst",
             options: { cacheName: "tv-pictures", expiration: { maxEntries: 10 } },
           },

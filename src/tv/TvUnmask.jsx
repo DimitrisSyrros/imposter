@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Screen } from "../components/Screen.jsx";
 import { turnOrder } from "../game/state.js";
 import { TvEnd } from "./TvEnd.jsx";
+import { CornerCode } from "./TvScreens.jsx";
 
 // The group votes out loud; the TV reveals. Same rules and words as Unmask.jsx on the phone:
 // "hidden" → "caught" (did you catch them?) → "guess" (they say a word out loud) → "judge" (word shown) → "done".
 // A caught imposter wins only by finding the word; one who got away wins either way.
-export function TvUnmask({ players, round, hintMode, onNewRound, onPlayers }) {
+export function TvUnmask({ players, round, code, hintMode, onNewRound, onPlayers }) {
   const [phase, setPhase] = useState("hidden");
   const [caught, setCaught] = useState(false);
   const [guessed, setGuessed] = useState(false);
@@ -52,7 +53,7 @@ export function TvUnmask({ players, round, hintMode, onNewRound, onPlayers }) {
 
   return (
     <Screen
-      className={`tvs tv-unmask${done ? " is-done" : ""}${revealed ? "" : " tv-pointing"}`}
+      className={`tvs tv-unmask${done ? " is-done" : ""}${revealed ? "" : " tv-pointing has-corner"}`}
       titleClassName="verdict"
       title={
         <>
@@ -99,6 +100,7 @@ export function TvUnmask({ players, round, hintMode, onNewRound, onPlayers }) {
           </>
         )}
       </div>
+      {!revealed && <CornerCode code={code} />}
     </Screen>
   );
 }

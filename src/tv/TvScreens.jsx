@@ -4,7 +4,6 @@ import { Logo } from "../components/Logo.jsx";
 import { turnOrder } from "../game/state.js";
 import { useCountdown } from "../lib/useCountdown.js";
 import { formatTime, spokenTime } from "../lib/format.js";
-import { categories } from "../lib/words.js";
 import { formatCode, joinLink } from "./code.js";
 import { Qr } from "./Qr.jsx";
 import { randomLitWindows, windowSprite } from "./windows.js";
@@ -94,12 +93,21 @@ export function TvLobby({ players, round, code, onReady, onSettings }) {
   );
 }
 
+// The round code in the bottom-right corner of the screens after the lobby, so someone who missed
+// the QR (or whose phone went wrong) can still join before the imposter is revealed.
+export function CornerCode({ code }) {
+  return (
+    <aside className="tv-corner" aria-label="Κωδικός γύρου">
+      <span className="hint">Έχασες την κάρτα σου; <b>{location.host}</b> · «Μπες σε γύρο TV»</span>
+      <span className="code" aria-label={code.split("").join(" ")}>{formatCode(code)}</span>
+    </aside>
+  );
+}
+
+// No category here: on the big screen it would tell the imposter what to look for.
 function RoundChips({ round, settings }) {
-  const cat = categories.find((c) => c.name === round.category);
   return (
     <ul className="tv-chips">
-      {/* in hint-only mode the category would give the imposter extra help */}
-      {settings.hintMode !== "hintOnly" && <li><span aria-hidden="true">{cat?.icon} </span>{round.category}</li>}
       <li>{round.imposters.length === 1 ? "1 imposter" : `${round.imposters.length} imposters`}</li>
       {settings.timerOn && <li>Χρόνος {formatTime(settings.timerSeconds)}</li>}
     </ul>
@@ -121,19 +129,29 @@ function Order({ players, round, current = -1 }) {
 }
 
 // Step 2: everyone looks at their card at once. The TV can't know who has looked.
-export function TvCards({ players, round, settings, onGo }) {
+// With the timer off there is no separate clue round: this screen is also where the clues are said.
+export function TvCards({ players, round, settings, code, onGo }) {
   const first = players[round.start];
+  const timed = settings.timerOn;
   return (
-    <Screen className="tvs" title="Κοιτάξτε τις κάρτες σας" before={<div className="tv-redline" />}>
-      <p className="sub">Κρατήστε πατημένη την κάρτα στο κινητό σας. Μην τη δείξετε σε κανέναν.</p>
+    <Screen className="tvs tv-cards has-corner" title={timed ? "Κοιτάξτε τις κάρτες σας" : "Κάρτες και στοιχεία"} before={<div className="tv-redline" />}>
+      {timed ? (
+        <p className="sub">Δείτε την κάρτα σας στο κινητό και μην τη δείξετε σε κανέναν. Όταν όλοι είναι έτοιμοι, ξεκινά ο γύρος στοιχείων με χρόνο.</p>
+      ) : (
+        <ol className="sub tv-steps">
+          <li>Δείτε την κάρτα σας στο κινητό και μην τη δείξετε σε κανέναν.</li>
+          <li>Με τη σειρά από κάτω, ο καθένας λέει δυνατά μία λέξη-στοιχείο.</li>
+        </ol>
+      )}
       <div className="grow" />
       <p className="tv-starter">Ξεκινά: <strong>{first}</strong></p>
       <Order players={players} round={round} />
       <RoundChips round={round} settings={settings} />
       <div className="grow" />
       <div className="tv-row end">
-        <button type="button" className="btn" onClick={onGo}>Όλοι είδαν · Πάμε</button>
+        <button type="button" className="btn" onClick={onGo}>{timed ? "Όλοι είδαν · Στα στοιχεία" : "Όλοι είπαν · Στην ψηφοφορία"}</button>
       </div>
+      <CornerCode code={code} />
     </Screen>
   );
 }
@@ -142,7 +160,7 @@ const RING_R = 58;
 const RING_LEN = 2 * Math.PI * RING_R;
 
 // Step 3 (timer on): the TV is the clock. One clue each, in order; the clues are said out loud.
-export function TvClues({ players, round, settings, onVote }) {
+export function TvClues({ players, round, settings, code, onVote }) {
   const order = turnOrder(players.length, round.start);
   const [current, setCurrent] = useState(0);
   const { left, running, done, toggle } = useCountdown(settings.timerSeconds, true);
@@ -160,7 +178,7 @@ export function TvClues({ players, round, settings, onVote }) {
   }, [left]);
 
   return (
-    <Screen className="tvs" title="Γύρος στοιχείων" before={<div className="tv-redline" />}>
+    <Screen className="tvs has-corner" title="Γύρος στοιχείων" before={<div className="tv-redline" />}>
       <div className="tv-clues">
         <div className={`timer tv-timer${done ? " over" : ""}`} role="timer" aria-label="Χρόνος που απομένει">
           <svg viewBox="0 0 132 132" aria-hidden="true">
@@ -188,6 +206,7 @@ export function TvClues({ players, round, settings, onVote }) {
         </div>
       </div>
       <p className="visually-hidden" aria-live="polite">{message}</p>
+      <CornerCode code={code} />
     </Screen>
   );
 }

@@ -70,6 +70,17 @@ html.tv body { font-size: 1.0625rem; }
 
 /* Lobby: the code and QR on the left, a lit window per seat on the right */
 .tv-two { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 4vw; align-items: center; min-height: 0; }
+/* The round code in the corner of the in-round screens, for late or lost players.
+   The screen keeps room for it at the bottom so it never covers a button. */
+.tvs.has-corner { padding-bottom: max(7.5rem, env(safe-area-inset-bottom)); }
+.tv-corner {
+  position: absolute; right: max(4vw, env(safe-area-inset-right)); bottom: max(1.75rem, env(safe-area-inset-bottom));
+  display: grid; justify-items: end; gap: 0.125rem; padding: 0.625rem 1.125rem; text-align: right;
+  background: #060a0bd9; box-shadow: inset 0 0 0 1px var(--app-line);
+}
+.tv-corner .hint { font-size: 0.9375rem; color: var(--app-muted); }
+.tv-corner .hint b { color: var(--app-fg); }
+.tv-corner .code { font: 400 2.25rem/1.1 var(--f-display); letter-spacing: 0.08em; color: var(--gold); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tv-code { display: grid; gap: 1rem; align-content: center; }
 .tv-bigcode { margin: 0; font: 400 5rem/1 var(--f-display); letter-spacing: 0.08em; color: var(--gold); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tv-qrrow { display: flex; align-items: center; gap: 1.5rem; }
@@ -97,6 +108,7 @@ html.tv body { font-size: 1.0625rem; }
 .tv-order li.done::after { content: " ✓"; }
 .tv-order li.now { box-shadow: inset 0 0 0 2px var(--sun); color: var(--sun-hi); font-weight: 800; }
 .tv-order:has(li.now) li:first-child:not(.now) { box-shadow: inset 0 0 0 1px var(--app-line-strong); }
+.tv-steps { margin: 0; padding-left: 1.5rem; display: grid; gap: 0.25rem; }
 .tv-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .tv-chips li { padding: 0.25rem 0.875rem; background: var(--surface); box-shadow: inset 0 0 0 1px var(--app-line); color: var(--app-muted); }
 .tv-clues { flex: 1; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5vw; align-items: center; }
@@ -120,6 +132,17 @@ html.tv body { font-size: 1.0625rem; }
     url("../assets/tv-pointing.webp") center / cover no-repeat,
     var(--app-bg);
 }
+/* «Κοιτάξτε τις κάρτες σας» / «Κάρτες και στοιχεία»: the three in the detectives' room, in place of the
+   facade. Darker on the left and at the top behind the text, and bottom right behind the button and code. */
+.tvs.tv-cards {
+  background:
+    linear-gradient(90deg, #000d, #000a 35%, #0004 60%, transparent 75%),
+    linear-gradient(#0009, transparent 30%, transparent 70%, #000a),
+    url("../assets/tv-cards.webp") center / cover no-repeat,
+    var(--app-bg);
+}
+.tv-cards .sub, .tv-cards .tv-starter { text-shadow: 0 0 0.75rem #000, 0 0.125rem 0.25rem #000; }
+.tv-cards .sub { color: var(--app-fg); }
 .tv-pointing .tv-line { text-shadow: 0 0 0.75rem #000, 0 0.125rem 0.25rem #000; } /* over the lit window */
 .tv-word { margin: 0; font-size: 1.25rem; color: var(--app-muted); }
 .tv-word b { font: 400 2rem/1.2 var(--f-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--app-fg); }

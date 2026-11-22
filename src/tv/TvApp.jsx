@@ -54,15 +54,16 @@ export default function TvApp() {
     case "lobby":
       return <TvLobby key={code} players={players} round={round} code={code} onReady={() => go("cards")} onSettings={() => go("settings")} />;
     case "cards":
-      return <TvCards players={players} round={round} settings={settings} onGo={() => go(settings.timerOn ? "clues" : "unmask")} />;
+      return <TvCards players={players} round={round} settings={settings} code={code} onGo={() => go(settings.timerOn ? "clues" : "unmask")} />;
     case "clues":
-      return <TvClues key={code} players={players} round={round} settings={settings} onVote={() => go("unmask")} />;
+      return <TvClues key={code} players={players} round={round} settings={settings} code={code} onVote={() => go("unmask")} />;
     case "unmask":
       return (
         <TvUnmask
           key={code}
           players={players}
           round={round}
+          code={code}
           hintMode={settings.hintMode}
           onNewRound={() => deal(round.number + 1)}
           onPlayers={() => go("players")}
