@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Screen } from "../components/Screen.jsx";
 import { RoundFacts } from "../components/RoundFacts.jsx";
-import { Celebrate } from "../components/Celebrate.jsx";
+import { BuildingEnd } from "../components/BuildingEnd.jsx";
 import { useSavedState } from "../lib/storage.js";
 import { turnOrder } from "../game/state.js";
 
@@ -59,6 +59,8 @@ export function Unmask({ players, round, hintMode, onNewRound, onPlayers }) {
   const revealed = phase !== "hidden";
   return (
     <Screen
+      className={phase === "done" ? "app is-done" : "app"}
+      before={phase === "done" ? <BuildingEnd kind={stamp.kind} /> : null}
       titleClassName="verdict"
       title={
         <>
@@ -74,7 +76,6 @@ export function Unmask({ players, round, hintMode, onNewRound, onPlayers }) {
           Ξεκινά: <strong>{order[0]}</strong>
         </p>
       )}
-      {phase === "done" && <Celebrate kind={stamp.kind} />}
       <p className="sub center" ref={status} tabIndex={-1}>{line}</p>
 
       {revealed && <RoundFacts round={round} hintMode={hintMode} wordShown={phase === "judge" || phase === "done"} />}

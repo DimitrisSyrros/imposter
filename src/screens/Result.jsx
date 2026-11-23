@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Screen } from "../components/Screen.jsx";
 import { RoundFacts } from "../components/RoundFacts.jsx";
-import { Celebrate } from "../components/Celebrate.jsx";
+import { BuildingEnd } from "../components/BuildingEnd.jsx";
 import { useSavedState } from "../lib/storage.js";
 import { verdict } from "../game/state.js";
 
@@ -62,6 +62,8 @@ export function Result({ players, round, hintMode, onNewRound, onPlayers }) {
 
   return (
     <Screen
+      className={phase === "done" ? "app is-done" : "app"}
+      before={phase === "done" ? <BuildingEnd kind={stampKind} /> : null}
       titleClassName="verdict"
       title={
         <>
@@ -70,7 +72,6 @@ export function Result({ players, round, hintMode, onNewRound, onPlayers }) {
         </>
       }
     >
-      {phase === "done" && <Celebrate kind={stampKind} />}
       <p className="sub center" ref={outcome} tabIndex={-1}>{line}</p>
 
       <RoundFacts round={round} hintMode={hintMode} wordShown={wordShown} />

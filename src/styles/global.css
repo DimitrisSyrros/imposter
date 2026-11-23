@@ -553,8 +553,44 @@ legend { padding: 0; margin-bottom: 0.5rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .center-link { align-self: center; margin-left: 0; }
 
-/* End-of-round animation (Celebrate.jsx): plays once over the screen, never takes a tap. */
-.celebrate { position: fixed; inset: 0; z-index: 10; pointer-events: none; overflow: hidden; }
+/* End of round on the phone (BuildingEnd.jsx), the same show as the TV's: a slice of the TV building
+   fills the bottom of the screen, lifted so the onlookers stand above the buttons. The flats light up
+   (win) or go dark except the red window (lose); then the result fades in on dark backing, as on the TV. */
+.app.is-done { background: #060a0b; --end-delay: 2s; }
+.app.is-done:has(.bend.lose) { --end-delay: 2.8s; }
+.bend {
+  position: absolute; z-index: -1; left: 0; right: 0; bottom: calc(8.5rem + env(safe-area-inset-bottom));
+  aspect-ratio: 736 / 941; pointer-events: none; overflow: hidden; /* the mask ducks out of sight below it */
+}
+.bend::after { content: ""; position: absolute; inset: -1px; background: linear-gradient(#060a0b, transparent 12%, transparent 88%, #060a0b); }
+.bend .layer { position: absolute; inset: 0; }
+.bend-scene { position: absolute; inset: 0; background: url("../assets/end-building.webp") center / 100% 100% no-repeat; filter: brightness(0.7); }
+.bend.win .bend-scene { animation: bend-scene-win 3s ease-out both; }
+.bend.lose .bend-scene { animation: bend-scene-lose 2.6s ease-in both; }
+@keyframes bend-scene-win { from { filter: brightness(0.45); } to { filter: brightness(0.8); } }
+@keyframes bend-scene-lose { from { filter: brightness(0.85); } to { filter: brightness(0.42) saturate(0.75); } }
+.bend .glow {
+  position: absolute; opacity: 0; mix-blend-mode: screen;
+  background: linear-gradient(180deg, var(--c1), var(--c2) 75%); box-shadow: 0 0 0.75rem var(--c2);
+  animation: bend-light-on 0.7s ease-out var(--d) both;
+}
+.bend .off { position: absolute; opacity: 0; background: linear-gradient(180deg, #0b1316, #081013); animation: bend-light-off 0.6s linear var(--d) both; }
+.bend .red {
+  position: absolute; opacity: 0; mix-blend-mode: screen;
+  background: linear-gradient(180deg, #ff6a74, #c8102e 80%); box-shadow: 0 0 1rem 0.3rem #ff2a3a;
+  animation: bend-red 0.55s ease-in-out 1.9s 7 alternate both;
+}
+@keyframes bend-light-on { 0% { opacity: 0; } 35% { opacity: 0.75; } 50% { opacity: 0.3; } 100% { opacity: 0.8; } }
+@keyframes bend-light-off { 0% { opacity: 0; } 30% { opacity: 0.95; } 45% { opacity: 0.2; } 100% { opacity: 0.95; } }
+@keyframes bend-red { from { opacity: 0.25; } to { opacity: 0.95; } }
+.bend .bend-peek { z-index: 1; animation-delay: 2.1s; animation-duration: 2.8s; transform: translateY(110%); bottom: 4%; width: 5.5rem; height: 5.5rem; margin-left: -2.75rem; }
+.bend .bend-peek svg { width: 3.5rem; height: 3.5rem; }
+.bend .bend-peek .wink { animation-delay: 2.1s; animation-duration: 2.8s; }
+/* the result, on dark backing over the building, comes in once the show has played */
+.app.is-done > :not(.bend, .grow) { animation: end-fade-up 0.6s ease-out var(--end-delay) both; }
+.app.is-done > :not(.bend, .grow, :last-child) { background: #060a0bd9; box-shadow: 0 0 1.5rem 1rem #060a0bd9; }
+.app.is-done .stamp.pop { animation-delay: calc(var(--end-delay) + 0.2s); }
+@keyframes end-fade-up { from { opacity: 0; transform: translateY(1rem); } to { opacity: 1; transform: none; } }
 .burst { position: absolute; left: var(--x); top: var(--y); }
 .burst i {
   position: absolute; width: 0.5rem; height: 0.5rem; margin: -0.25rem; border-radius: 50%;
@@ -606,7 +642,12 @@ legend { padding: 0; margin-bottom: 0.5rem; }
     scroll-behavior: auto !important;
   }
   .mask, .card, .stamp { rotate: none; }
-  .celebrate { display: none; }
+  /* the end of round shows its final picture straight away */
+  .bend *, .app.is-done > *, .app.is-done .stamp.pop { animation: none !important; }
+  .bend.win .glow { opacity: 0.8; }
+  .bend.lose .off, .bend.lose .red { opacity: 0.95; }
+  .bend.lose .bend-scene { filter: brightness(0.42) saturate(0.75); }
+  .bend .fx, .bend-peek { display: none; }
   /* the seat hold bar is a timer, not decoration: it keeps its real length */
   .seat.holding .hold-bar i { animation-duration: var(--hold) !important; }
   .spinner { animation: none; border-right-color: currentColor; border-style: dotted; }
